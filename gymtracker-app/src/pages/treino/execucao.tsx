@@ -172,7 +172,7 @@ export default function ExecucaoPage() {
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 border-destructive text-destructive hover:bg-destructive/10"
+            className="flex-1 bg-red-700/80 hover:bg-red-700 text-white border-red-700"
             onClick={() => {
               if (confirm('Deseja marcar este dia como Falta? Isso avançará para o próximo treino.')) {
                 missMutation.mutate()
