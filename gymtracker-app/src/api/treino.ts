@@ -16,6 +16,7 @@ export const diasApi = {
   list: (params?: { status?: string; week?: number; block?: string }) =>
     api.get('/treino/dias', { params }),
   proximo: () => api.get('/treino/dias/proximo'),
+  ultimo: () => api.get('/treino/dias/ultimo'),
   get: (id: number) => api.get(`/treino/dias/${id}`),
   iniciar: (id: number) => api.patch(`/treino/dias/${id}/iniciar`),
   concluir: (id: number, data: Record<string, unknown>) =>
@@ -23,6 +24,7 @@ export const diasApi = {
   falta: (id: number) => api.patch(`/treino/dias/${id}/falta`),
   rascunho: (id: number, data: Record<string, unknown>) =>
     api.patch(`/treino/dias/${id}/rascunho`, data),
+  reverter: (id: number) => api.patch(`/treino/dias/${id}/reverter`),
   updateExercicio: (dayId: number, exId: number, data: Record<string, unknown>) =>
     api.patch(`/treino/dias/${dayId}/exercicios/${exId}`, data),
 }

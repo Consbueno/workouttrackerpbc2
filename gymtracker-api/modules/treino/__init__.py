@@ -603,6 +603,31 @@ def list_days():
     return jsonify({"data": _rows_to_list(rows)})
 
 
+@bp.route("/dias/ultimo", methods=["GET"])
+@jwt_required()
+def last_day():
+    user_id = int(get_jwt_identity())
+    program = db.query_one(
+        "SELECT id FROM training_programs WHERE user_id=%s AND status IN ('active','completed') ORDER BY id DESC LIMIT 1",
+        (user_id,),
+    )
+    if not program:
+        return jsonify({"data": None})
+
+    day = db.query_one(
+        """SELECT td.id, td.day_number, td.week_number, td.status,
+                  ts.letter, ts.description as split_description,
+                  tb.name as block_name, tb.color as block_color
+           FROM training_days td
+           JOIN training_splits ts ON ts.id = td.split_id
+           JOIN training_blocks tb ON tb.id = td.block_id
+           WHERE td.program_id = %s AND td.status IN ('completed', 'missed')
+           ORDER BY td.day_number DESC LIMIT 1""",
+        (program["id"],),
+    )
+    return jsonify({"data": _row_to_dict(day)})
+
+
 @bp.route("/dias/proximo", methods=["GET"])
 @jwt_required()
 def next_day():
@@ -778,6 +803,45 @@ def save_draft(day_id):
         (day_id,),
     )
     return jsonify({"message": "Rascunho salvo com sucesso."})
+
+
+@bp.route("/dias/<int:day_id>/reverter", methods=["PATCH"])
+@jwt_required()
+def revert_day(day_id):
+    user_id = int(get_jwt_identity())
+    row = db.query_one(
+        """SELECT td.id, td.status, td.program_id FROM training_days td
+           JOIN training_programs tp ON tp.id = td.program_id
+           WHERE td.id = %s AND tp.user_id = %s""",
+        (day_id, user_id),
+    )
+    if not row:
+        return jsonify({"error": "Dia não encontrado."}), 404
+    if row["status"] == "pending":
+        return jsonify({"error": "Este dia já está pendente."}), 400
+
+    # Reverter status e limpar timestamps
+    db.execute(
+        """UPDATE training_days
+           SET status='pending', started_at=NULL, completed_at=NULL, notes=NULL, updated_at=NOW()
+           WHERE id=%s""",
+        (day_id,),
+    )
+    # Limpar dados de execução dos exercícios
+    db.execute(
+        """UPDATE training_day_exercises
+           SET actual_load_kg=NULL, actual_reps=NULL, is_completed=FALSE,
+               exercise_notes=NULL, completed_at=NULL
+           WHERE training_day_id=%s""",
+        (day_id,),
+    )
+    # Se o programa estava 'completed', reativar
+    db.execute(
+        """UPDATE training_programs SET status='active', updated_at=NOW()
+           WHERE id=%s AND status='completed'""",
+        (row["program_id"],),
+    )
+    return jsonify({"message": "Treino revertido para pendente."})
 
 
 @bp.route("/dias/<int:day_id>/exercicios/<int:ex_id>", methods=["PATCH"])

@@ -25,6 +25,14 @@ export function useDay(id: number | undefined) {
   })
 }
 
+export function useLastDay() {
+  return useQuery({
+    queryKey: ['ultimo-dia'],
+    queryFn: () => diasApi.ultimo().then(r => r.data.data),
+    staleTime: 10_000,
+  })
+}
+
 export function useProgramSummary(id: number | undefined) {
   return useQuery({
     queryKey: ['programa-resumo', id],

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, XCircle, Save, AlertCircle } from 'lucide-react'
-import { useNextDay, useDay } from '@/hooks/use-training'
+import { CheckCircle2, XCircle, Save, AlertCircle, RotateCcw } from 'lucide-react'
+import { useNextDay, useDay, useLastDay } from '@/hooks/use-training'
 import { diasApi } from '@/api/treino'
 import { BlockBadge } from '@/components/training/block-badge'
 import { ExerciseCard, type ExerciseExecution } from '@/components/training/exercise-card'
@@ -19,6 +19,7 @@ export default function ExecucaoPage() {
   const qc = useQueryClient()
   const { restTimerEnabled } = useAppStore()
   const { data: nextDay } = useNextDay()
+  const { data: lastDay } = useLastDay()
   const dayId = nextDay?.id as number | undefined
   const { data: day, isLoading } = useDay(dayId)
 
@@ -53,6 +54,7 @@ export default function ExecucaoPage() {
       diasApi.concluir(dayId!, { exercises, notes }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['proximo-dia'] })
+      qc.invalidateQueries({ queryKey: ['ultimo-dia'] })
       qc.invalidateQueries({ queryKey: ['dias-stats'] })
       qc.invalidateQueries({ queryKey: ['programa-ativo'] })
       toast({ title: 'Treino concluído! Ótimo trabalho! 💪' })
@@ -64,10 +66,23 @@ export default function ExecucaoPage() {
     mutationFn: () => diasApi.falta(dayId!),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['proximo-dia'] })
+      qc.invalidateQueries({ queryKey: ['ultimo-dia'] })
       qc.invalidateQueries({ queryKey: ['dias-stats'] })
       toast({ title: 'Dia marcado como falta.' })
       navigate('/')
     },
+  })
+
+  const revertMutation = useMutation({
+    mutationFn: (id: number) => diasApi.reverter(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['proximo-dia'] })
+      qc.invalidateQueries({ queryKey: ['ultimo-dia'] })
+      qc.invalidateQueries({ queryKey: ['dias-stats'] })
+      qc.invalidateQueries({ queryKey: ['programa-ativo'] })
+      toast({ title: 'Treino revertido para pendente.' })
+    },
+    onError: () => toast({ title: 'Erro ao reverter.', variant: 'destructive' }),
   })
 
   const handleExerciseChange = (id: number, field: string, value: unknown) => {
@@ -101,6 +116,20 @@ export default function ExecucaoPage() {
         <h2 className="text-xl font-semibold mb-2">Ciclo concluído!</h2>
         <p className="text-muted-foreground mb-6">Todos os treinos foram finalizados.</p>
         <Button onClick={() => navigate('/treino/fim-ciclo')}>Ver Resumo do Ciclo</Button>
+        {lastDay && (
+          <button
+            onClick={() => {
+              if (confirm(`Reverter Dia ${lastDay.day_number} (${lastDay.status === 'completed' ? 'concluído' : 'falta'}) para pendente?`)) {
+                revertMutation.mutate(lastDay.id)
+              }
+            }}
+            disabled={revertMutation.isPending}
+            className="mt-4 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 mx-auto"
+          >
+            <RotateCcw className="h-3 w-3" />
+            Reverter último treino (Dia {lastDay.day_number})
+          </button>
+        )}
       </div>
     )
   }
@@ -111,7 +140,23 @@ export default function ExecucaoPage() {
     <div className="space-y-4 pb-44">
       {/* Header */}
       <div className="space-y-2">
-        <BlockBadge color={day?.block_color ?? 'blue'} name={day?.block_name ?? ''} />
+        <div className="flex items-center justify-between">
+          <BlockBadge color={day?.block_color ?? 'blue'} name={day?.block_name ?? ''} />
+          {lastDay && (
+            <button
+              onClick={() => {
+                if (confirm(`Reverter Dia ${lastDay.day_number} (${lastDay.status === 'completed' ? 'concluído' : 'falta'}) para pendente?`)) {
+                  revertMutation.mutate(lastDay.id)
+                }
+              }}
+              disabled={revertMutation.isPending}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+            >
+              <RotateCcw className="h-3 w-3" />
+              Reverter Dia {lastDay.day_number}
+            </button>
+          )}
+        </div>
         <div>
           <h1 className="text-xl font-bold">
             Treino {day?.letter} — {day?.split_description}
