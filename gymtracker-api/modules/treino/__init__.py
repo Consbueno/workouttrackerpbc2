@@ -817,37 +817,42 @@ def save_draft(day_id):
 @bp.route("/dias/<int:day_id>/reverter", methods=["PATCH"])
 @jwt_required()
 def revert_day(day_id):
+    import traceback
     user_id = int(get_jwt_identity())
-    row = db.query_one(
-        """SELECT td.id, td.status, td.program_id FROM training_days td
-           JOIN training_programs tp ON tp.id = td.program_id
-           WHERE td.id = %s AND tp.user_id = %s""",
-        (day_id, user_id),
-    )
-    if not row:
-        return jsonify({"error": "Dia não encontrado."}), 404
-    if row["status"] == "pending":
-        return jsonify({"error": "Este dia já está pendente."}), 400
+    try:
+        row = db.query_one(
+            """SELECT td.id, td.status, td.program_id FROM training_days td
+               JOIN training_programs tp ON tp.id = td.program_id
+               WHERE td.id = %s AND tp.user_id = %s""",
+            (day_id, user_id),
+        )
+        if not row:
+            return jsonify({"error": "Dia não encontrado."}), 404
+        if row["status"] == "pending":
+            return jsonify({"error": "Este dia já está pendente."}), 400
 
-    db.execute(
-        """UPDATE training_days
-           SET status='pending', started_at=NULL, completed_at=NULL,
-               notes=NULL, updated_at=NOW()
-           WHERE id=%s""",
-        (day_id,),
-    )
-    db.execute(
-        """UPDATE training_day_exercises
-           SET actual_load_kg=NULL, actual_reps=NULL, is_completed=FALSE,
-               exercise_notes=NULL, completed_at=NULL
-           WHERE training_day_id=%s""",
-        (day_id,),
-    )
-    db.execute(
-        """UPDATE training_programs SET status='active', updated_at=NOW()
-           WHERE id=%s AND status='completed'""",
-        (row["program_id"],),
-    )
+        db.execute(
+            """UPDATE training_days
+               SET status='pending', started_at=NULL, completed_at=NULL,
+                   notes=NULL, updated_at=NOW()
+               WHERE id=%s""",
+            (day_id,),
+        )
+        db.execute(
+            """UPDATE training_day_exercises
+               SET actual_load_kg=NULL, actual_reps=NULL, is_completed=FALSE,
+                   exercise_notes=NULL, completed_at=NULL
+               WHERE training_day_id=%s""",
+            (day_id,),
+        )
+        db.execute(
+            """UPDATE training_programs SET status='active', updated_at=NOW()
+               WHERE id=%s AND status='completed'""",
+            (row["program_id"],),
+        )
+    except Exception as e:
+        print(f"[revert_day] erro: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": f"Erro ao reverter: {str(e)}"}), 500
     return jsonify({"message": "Treino revertido para pendente."})
 
 
