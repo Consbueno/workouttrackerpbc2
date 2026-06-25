@@ -19,7 +19,8 @@ def create_app():
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(seconds=app.config["JWT_ACCESS_TOKEN_EXPIRES"])
     app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(seconds=app.config["JWT_REFRESH_TOKEN_EXPIRES"])
 
-    CORS(app, origins=[app.config["FRONTEND_URL"], "http://localhost:5173", "http://localhost:3000"])
+    _frontend_urls = [u.strip() for u in app.config.get("FRONTEND_URL", "").split(",") if u.strip()]
+    CORS(app, origins=_frontend_urls + ["http://localhost:5173", "http://localhost:3000"])
     bcrypt.init_app(app)
     jwt.init_app(app)
 
