@@ -853,6 +853,71 @@ def revert_day(day_id):
     return jsonify({"message": "Treino revertido para pendente."})
 
 
+@bp.route("/dias/<int:day_id>/marcar-realizado", methods=["PATCH"])
+@jwt_required()
+def mark_day_completed(day_id):
+    user_id = int(get_jwt_identity())
+    row = db.query_one(
+        """SELECT td.id, td.program_id FROM training_days td
+           JOIN training_programs tp ON tp.id = td.program_id
+           WHERE td.id = %s AND tp.user_id = %s""",
+        (day_id, user_id),
+    )
+    if not row:
+        return jsonify({"error": "Dia não encontrado."}), 404
+    db.execute(
+        """UPDATE training_days
+           SET status='completed', started_at=COALESCE(started_at, NOW()),
+               completed_at=NOW(), updated_at=NOW()
+           WHERE id=%s""",
+        (day_id,),
+    )
+    program_id = row["program_id"]
+    remaining = db.query_one(
+        "SELECT COUNT(*) as cnt FROM training_days WHERE program_id=%s AND status='pending'",
+        (program_id,),
+    )
+    if remaining and remaining["cnt"] == 0:
+        db.execute(
+            "UPDATE training_programs SET status='completed', updated_at=NOW() WHERE id=%s",
+            (program_id,),
+        )
+    return jsonify({"message": "Treino marcado como realizado."})
+
+
+@bp.route("/dias/<int:day_id>/exercicios/<int:ex_id>/plano", methods=["PATCH"])
+@jwt_required()
+def update_day_exercise_plan(day_id, ex_id):
+    user_id = int(get_jwt_identity())
+    data = request.get_json() or {}
+    day = db.query_one(
+        """SELECT td.id FROM training_days td
+           JOIN training_programs tp ON tp.id=td.program_id
+           WHERE td.id=%s AND tp.user_id=%s""",
+        (day_id, user_id),
+    )
+    if not day:
+        return jsonify({"error": "Dia não encontrado."}), 404
+    row = db.execute(
+        """UPDATE training_day_exercises SET
+           planned_sets=COALESCE(%s, planned_sets),
+           planned_reps=COALESCE(%s, planned_reps),
+           planned_load_kg=COALESCE(%s, planned_load_kg),
+           planned_rest_seconds=COALESCE(%s, planned_rest_seconds)
+           WHERE id=%s AND training_day_id=%s RETURNING *""",
+        (
+            int(data["planned_sets"]) if data.get("planned_sets") is not None else None,
+            data.get("planned_reps"),
+            float(data["planned_load_kg"]) if data.get("planned_load_kg") is not None else None,
+            int(data["planned_rest_seconds"]) if data.get("planned_rest_seconds") is not None else None,
+            ex_id, day_id,
+        ),
+    )
+    if not row:
+        return jsonify({"error": "Exercício não encontrado."}), 404
+    return jsonify({"data": _row_to_dict(row), "message": "Plano atualizado."})
+
+
 @bp.route("/dias/<int:day_id>/exercicios/<int:ex_id>", methods=["PATCH"])
 @jwt_required()
 def update_day_exercise(day_id, ex_id):

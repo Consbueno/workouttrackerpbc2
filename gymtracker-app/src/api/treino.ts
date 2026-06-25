@@ -25,6 +25,9 @@ export const diasApi = {
   rascunho: (id: number, data: Record<string, unknown>) =>
     api.patch(`/treino/dias/${id}/rascunho`, data),
   reverter: (id: number) => api.patch(`/treino/dias/${id}/reverter`),
+  marcarRealizado: (id: number) => api.patch(`/treino/dias/${id}/marcar-realizado`),
   updateExercicio: (dayId: number, exId: number, data: Record<string, unknown>) =>
     api.patch(`/treino/dias/${dayId}/exercicios/${exId}`, data),
+  updateExercicioPlano: (dayId: number, exId: number, data: Record<string, unknown>) =>
+    api.patch(`/treino/dias/${dayId}/exercicios/${exId}/plano`, data),
 }
