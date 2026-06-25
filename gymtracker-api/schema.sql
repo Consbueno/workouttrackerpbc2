@@ -376,3 +376,267 @@ CREATE INDEX IF NOT EXISTS idx_ai_analyses_user
 
 CREATE INDEX IF NOT EXISTS idx_ai_analyses_program
     ON ai_analyses (program_id);
+
+-- ============================================================
+-- ROW LEVEL SECURITY (RLS) — Supabase
+-- ============================================================
+-- Mecanismo: o backend Flask injeta SET LOCAL app.current_user_id = X
+-- no início de cada transação (ver db.py). As políticas abaixo
+-- isolam os dados por usuário usando esse parâmetro de sessão.
+--
+-- Helper reutilizado nas políticas:
+--   NULLIF(current_setting('app.current_user_id', true), '')::integer
+--   → retorna NULL se não definido (ex: init_db como postgres)
+--   → retorna o integer do usuário autenticado durante requests
+--
+-- Bypass para role postgres: permite que init_db/seed (sem user_id
+-- definido) operem normalmente. Em produção o acesso direto ao banco
+-- deve ser restrito por network/credenciais do Supabase.
+-- ============================================================
+
+-- Função auxiliar para não repetir o cast em cada política
+CREATE OR REPLACE FUNCTION current_user_id()
+RETURNS integer AS $$
+    SELECT NULLIF(current_setting('app.current_user_id', true), '')::integer;
+$$ LANGUAGE sql STABLE;
+
+-- ------------------------------------------------------------
+-- TABELA: users
+-- ------------------------------------------------------------
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE users FORCE ROW LEVEL SECURITY;
+
+-- postgres bypassa quando app.current_user_id não está definido (init)
+CREATE POLICY users_admin ON users TO postgres
+    USING (current_user_id() IS NULL)
+    WITH CHECK (current_user_id() IS NULL);
+
+-- Registro: INSERT permitido sem user_id (usuário ainda não existe)
+CREATE POLICY users_insert ON users FOR INSERT
+    WITH CHECK (true);
+
+-- Leitura e atualização: apenas o próprio registro
+CREATE POLICY users_select ON users FOR SELECT
+    USING (id = current_user_id());
+
+CREATE POLICY users_update ON users FOR UPDATE
+    USING (id = current_user_id())
+    WITH CHECK (id = current_user_id());
+
+-- ------------------------------------------------------------
+-- TABELA: athletes
+-- ------------------------------------------------------------
+ALTER TABLE athletes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE athletes FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY athletes_admin ON athletes TO postgres
+    USING (current_user_id() IS NULL) WITH CHECK (current_user_id() IS NULL);
+
+CREATE POLICY athletes_isolation ON athletes
+    USING (user_id = current_user_id())
+    WITH CHECK (user_id = current_user_id());
+
+-- ------------------------------------------------------------
+-- TABELA: exercises
+-- ------------------------------------------------------------
+ALTER TABLE exercises ENABLE ROW LEVEL SECURITY;
+ALTER TABLE exercises FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY exercises_admin ON exercises TO postgres
+    USING (current_user_id() IS NULL) WITH CHECK (current_user_id() IS NULL);
+
+CREATE POLICY exercises_isolation ON exercises
+    USING (user_id = current_user_id())
+    WITH CHECK (user_id = current_user_id());
+
+-- ------------------------------------------------------------
+-- TABELA: gyms
+-- ------------------------------------------------------------
+ALTER TABLE gyms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE gyms FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY gyms_admin ON gyms TO postgres
+    USING (current_user_id() IS NULL) WITH CHECK (current_user_id() IS NULL);
+
+CREATE POLICY gyms_isolation ON gyms
+    USING (user_id = current_user_id())
+    WITH CHECK (user_id = current_user_id());
+
+-- ------------------------------------------------------------
+-- TABELA: training_programs
+-- ------------------------------------------------------------
+ALTER TABLE training_programs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE training_programs FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY programs_admin ON training_programs TO postgres
+    USING (current_user_id() IS NULL) WITH CHECK (current_user_id() IS NULL);
+
+CREATE POLICY programs_isolation ON training_programs
+    USING (user_id = current_user_id())
+    WITH CHECK (user_id = current_user_id());
+
+-- ------------------------------------------------------------
+-- TABELA: training_blocks  (sem user_id — isolamento via program)
+-- ------------------------------------------------------------
+ALTER TABLE training_blocks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE training_blocks FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY blocks_admin ON training_blocks TO postgres
+    USING (current_user_id() IS NULL) WITH CHECK (current_user_id() IS NULL);
+
+CREATE POLICY blocks_isolation ON training_blocks
+    USING (
+        program_id IN (
+            SELECT id FROM training_programs WHERE user_id = current_user_id()
+        )
+    )
+    WITH CHECK (
+        program_id IN (
+            SELECT id FROM training_programs WHERE user_id = current_user_id()
+        )
+    );
+
+-- ------------------------------------------------------------
+-- TABELA: training_splits  (sem user_id — isolamento via program)
+-- ------------------------------------------------------------
+ALTER TABLE training_splits ENABLE ROW LEVEL SECURITY;
+ALTER TABLE training_splits FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY splits_admin ON training_splits TO postgres
+    USING (current_user_id() IS NULL) WITH CHECK (current_user_id() IS NULL);
+
+CREATE POLICY splits_isolation ON training_splits
+    USING (
+        program_id IN (
+            SELECT id FROM training_programs WHERE user_id = current_user_id()
+        )
+    )
+    WITH CHECK (
+        program_id IN (
+            SELECT id FROM training_programs WHERE user_id = current_user_id()
+        )
+    );
+
+-- ------------------------------------------------------------
+-- TABELA: split_exercises  (sem user_id — via split → program)
+-- ------------------------------------------------------------
+ALTER TABLE split_exercises ENABLE ROW LEVEL SECURITY;
+ALTER TABLE split_exercises FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY split_ex_admin ON split_exercises TO postgres
+    USING (current_user_id() IS NULL) WITH CHECK (current_user_id() IS NULL);
+
+CREATE POLICY split_ex_isolation ON split_exercises
+    USING (
+        split_id IN (
+            SELECT ts.id FROM training_splits ts
+            JOIN training_programs tp ON tp.id = ts.program_id
+            WHERE tp.user_id = current_user_id()
+        )
+    )
+    WITH CHECK (
+        split_id IN (
+            SELECT ts.id FROM training_splits ts
+            JOIN training_programs tp ON tp.id = ts.program_id
+            WHERE tp.user_id = current_user_id()
+        )
+    );
+
+-- ------------------------------------------------------------
+-- TABELA: split_exercise_block_config  (via split_exercise → split → program)
+-- ------------------------------------------------------------
+ALTER TABLE split_exercise_block_config ENABLE ROW LEVEL SECURITY;
+ALTER TABLE split_exercise_block_config FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY sebc_admin ON split_exercise_block_config TO postgres
+    USING (current_user_id() IS NULL) WITH CHECK (current_user_id() IS NULL);
+
+CREATE POLICY sebc_isolation ON split_exercise_block_config
+    USING (
+        split_exercise_id IN (
+            SELECT se.id FROM split_exercises se
+            JOIN training_splits ts ON ts.id = se.split_id
+            JOIN training_programs tp ON tp.id = ts.program_id
+            WHERE tp.user_id = current_user_id()
+        )
+    )
+    WITH CHECK (
+        split_exercise_id IN (
+            SELECT se.id FROM split_exercises se
+            JOIN training_splits ts ON ts.id = se.split_id
+            JOIN training_programs tp ON tp.id = ts.program_id
+            WHERE tp.user_id = current_user_id()
+        )
+    );
+
+-- ------------------------------------------------------------
+-- TABELA: training_days  (sem user_id — isolamento via program)
+-- ------------------------------------------------------------
+ALTER TABLE training_days ENABLE ROW LEVEL SECURITY;
+ALTER TABLE training_days FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY days_admin ON training_days TO postgres
+    USING (current_user_id() IS NULL) WITH CHECK (current_user_id() IS NULL);
+
+CREATE POLICY days_isolation ON training_days
+    USING (
+        program_id IN (
+            SELECT id FROM training_programs WHERE user_id = current_user_id()
+        )
+    )
+    WITH CHECK (
+        program_id IN (
+            SELECT id FROM training_programs WHERE user_id = current_user_id()
+        )
+    );
+
+-- ------------------------------------------------------------
+-- TABELA: training_day_exercises  (via training_day → program)
+-- ------------------------------------------------------------
+ALTER TABLE training_day_exercises ENABLE ROW LEVEL SECURITY;
+ALTER TABLE training_day_exercises FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY tde_admin ON training_day_exercises TO postgres
+    USING (current_user_id() IS NULL) WITH CHECK (current_user_id() IS NULL);
+
+CREATE POLICY tde_isolation ON training_day_exercises
+    USING (
+        training_day_id IN (
+            SELECT td.id FROM training_days td
+            JOIN training_programs tp ON tp.id = td.program_id
+            WHERE tp.user_id = current_user_id()
+        )
+    )
+    WITH CHECK (
+        training_day_id IN (
+            SELECT td.id FROM training_days td
+            JOIN training_programs tp ON tp.id = td.program_id
+            WHERE tp.user_id = current_user_id()
+        )
+    );
+
+-- ------------------------------------------------------------
+-- TABELA: measurements
+-- ------------------------------------------------------------
+ALTER TABLE measurements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE measurements FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY measurements_admin ON measurements TO postgres
+    USING (current_user_id() IS NULL) WITH CHECK (current_user_id() IS NULL);
+
+CREATE POLICY measurements_isolation ON measurements
+    USING (user_id = current_user_id())
+    WITH CHECK (user_id = current_user_id());
+
+-- ------------------------------------------------------------
+-- TABELA: ai_analyses
+-- ------------------------------------------------------------
+ALTER TABLE ai_analyses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_analyses FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY ai_admin ON ai_analyses TO postgres
+    USING (current_user_id() IS NULL) WITH CHECK (current_user_id() IS NULL);
+
+CREATE POLICY ai_isolation ON ai_analyses
+    USING (user_id = current_user_id())
+    WITH CHECK (user_id = current_user_id());

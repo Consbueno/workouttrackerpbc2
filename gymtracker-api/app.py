@@ -1,6 +1,6 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, g
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import JWTManager, verify_jwt_in_request, get_jwt_identity
 from flask_bcrypt import Bcrypt
 from datetime import timedelta
 
@@ -21,6 +21,17 @@ def create_app():
     CORS(app, origins=[app.config["FRONTEND_URL"], "http://localhost:5173", "http://localhost:3000"])
     bcrypt.init_app(app)
     jwt.init_app(app)
+
+    @app.before_request
+    def _set_db_user():
+        """Extrai user_id do JWT e armazena em g para injeção RLS no db()."""
+        try:
+            verify_jwt_in_request(optional=True)
+            uid = get_jwt_identity()
+            if uid:
+                g.user_id = int(uid)
+        except Exception:
+            pass
 
     database.init_pool(app)
 
