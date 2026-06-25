@@ -2,10 +2,11 @@ import { Link, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Dumbbell, ClipboardList, Settings,
   Users, Building2, ChevronDown, ChevronRight,
-  Activity, BarChart3, Cpu, Wrench,
+  Activity, BarChart3, Cpu, Wrench, PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
+import { useAppStore } from '@/stores/app-store'
 
 interface NavItem {
   to?: string
@@ -40,17 +41,41 @@ const navItems: NavItem[] = [
 
 export function Sidebar() {
   const { pathname } = useLocation()
+  const { sidebarCollapsed, toggleSidebar } = useAppStore()
   const [expanded, setExpanded] = useState<string[]>(['Cadastros', 'Treino'])
 
-  const toggle = (label: string) =>
+  const toggleGroup = (label: string) =>
     setExpanded(prev => prev.includes(label) ? prev.filter(l => l !== label) : [...prev, label])
 
+  const collapsed = sidebarCollapsed
+
   return (
-    <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r bg-background">
-      <div className="flex h-16 items-center px-6 border-b">
-        <span className="text-lg font-bold">GymTracker 16W</span>
+    <aside className={cn(
+      'hidden md:flex md:flex-col md:fixed md:inset-y-0 border-r bg-background transition-all duration-200',
+      collapsed ? 'md:w-16' : 'md:w-64'
+    )}>
+      {/* Header com botão de rebater */}
+      <div className={cn(
+        'flex h-16 items-center border-b shrink-0',
+        collapsed ? 'justify-center px-0' : 'justify-between px-4'
+      )}>
+        {!collapsed && (
+          <span className="text-base font-bold truncate">GymTracker 16W</span>
+        )}
+        <button
+          onClick={toggleSidebar}
+          title={collapsed ? 'Expandir menu' : 'Recolher menu'}
+          className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors shrink-0"
+        >
+          {collapsed
+            ? <PanelLeftOpen className="h-4 w-4" />
+            : <PanelLeftClose className="h-4 w-4" />
+          }
+        </button>
       </div>
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+
+      {/* Navegação */}
+      <nav className={cn('flex-1 overflow-y-auto py-4 space-y-1', collapsed ? 'px-2' : 'px-3')}>
         {navItems.map(item => {
           if (item.to) {
             const active = pathname === item.to
@@ -58,30 +83,60 @@ export function Sidebar() {
               <Link
                 key={item.to}
                 to={item.to}
+                title={collapsed ? item.label : undefined}
                 className={cn(
-                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                  active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  'flex items-center rounded-md py-2 text-sm font-medium transition-colors',
+                  collapsed ? 'justify-center px-0' : 'gap-3 px-3',
+                  active
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                 )}
               >
-                <item.icon className="h-4 w-4" />
-                {item.label}
+                <item.icon className="h-4 w-4 shrink-0" />
+                {!collapsed && item.label}
               </Link>
             )
           }
 
-          const isOpen = expanded.includes(item.label)
+          const isOpen = expanded.includes(item.label) && !collapsed
           const anyActive = item.children?.some(c => pathname.startsWith(c.to))
+
+          if (collapsed) {
+            // No modo colapsado, mostrar apenas os ícones dos filhos ativos ou o ícone do grupo
+            return (
+              <div key={item.label} className="space-y-1">
+                {item.children?.map(child => {
+                  const active = pathname === child.to || pathname.startsWith(child.to)
+                  return (
+                    <Link
+                      key={child.to}
+                      to={child.to}
+                      title={child.label}
+                      className={cn(
+                        'flex items-center justify-center rounded-md py-2 text-sm transition-colors',
+                        active
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                      )}
+                    >
+                      <child.icon className="h-4 w-4" />
+                    </Link>
+                  )
+                })}
+              </div>
+            )
+          }
 
           return (
             <div key={item.label}>
               <button
-                onClick={() => toggle(item.label)}
+                onClick={() => toggleGroup(item.label)}
                 className={cn(
                   'flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                   anyActive ? 'text-primary' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                 )}
               >
-                <item.icon className="h-4 w-4" />
+                <item.icon className="h-4 w-4 shrink-0" />
                 <span className="flex-1 text-left">{item.label}</span>
                 {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </button>
@@ -95,7 +150,9 @@ export function Sidebar() {
                         to={child.to}
                         className={cn(
                           'flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors',
-                          active ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                          active
+                            ? 'bg-primary/10 text-primary font-medium'
+                            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                         )}
                       >
                         <child.icon className="h-3.5 w-3.5" />

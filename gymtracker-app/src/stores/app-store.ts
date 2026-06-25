@@ -6,11 +6,13 @@ interface AppState {
   units: 'kg' | 'lb'
   restTimerEnabled: boolean
   vibrateEnabled: boolean
+  sidebarCollapsed: boolean
   setTheme: (theme: 'dark' | 'light') => void
   toggleTheme: () => void
   setUnits: (units: 'kg' | 'lb') => void
   setRestTimer: (enabled: boolean) => void
   setVibrate: (enabled: boolean) => void
+  toggleSidebar: () => void
 }
 
 export const useAppStore = create<AppState>()(
@@ -20,6 +22,7 @@ export const useAppStore = create<AppState>()(
       units: 'kg',
       restTimerEnabled: true,
       vibrateEnabled: true,
+      sidebarCollapsed: false,
 
       setTheme: (theme) => {
         set({ theme })
@@ -36,6 +39,7 @@ export const useAppStore = create<AppState>()(
       setUnits: (units) => set({ units }),
       setRestTimer: (restTimerEnabled) => set({ restTimerEnabled }),
       setVibrate: (vibrateEnabled) => set({ vibrateEnabled }),
+      toggleSidebar: () => set(s => ({ sidebarCollapsed: !s.sidebarCollapsed })),
     }),
     { name: 'gymtracker-app' }
   )
