@@ -23,15 +23,31 @@ gymtracker-api/seed.sql     ← exercícios padrão
 
 ### 3. Obter a connection string
 
-Supabase Dashboard → **Project Settings → Database → Connection string → URI**
+**Caminho exato no painel do Supabase:**
 
-- Use **Direct connection** (porta 5432) para o backend com connection pool próprio (gunicorn).
-- Use **Transaction pooler** (porta 6543) se querer o PgBouncer gerenciado pelo Supabase.
+1. Abra seu projeto no [supabase.com/dashboard](https://supabase.com/dashboard)
+2. No menu lateral esquerdo, clique em **"Project Settings"** (ícone de engrenagem ⚙️)
+3. No submenu que abre, clique em **"Database"**
+4. Role a página para baixo até encontrar a seção **"Connection string"**
+5. Você verá abas: `URI` · `PSQL` · `JDBC` · `.NET` — clique em **`URI`**
+6. O campo exibe a string no formato abaixo. Clique em **Copy** (ícone de cópia)
 
-Formato:
 ```
-postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-[REGION].supabase.com:5432/postgres
+postgresql://postgres.[PROJECT_REF]:[YOUR-PASSWORD]@aws-0-[REGION].supabase.com:5432/postgres
 ```
+
+> **Atenção:** A string exibida traz `[YOUR-PASSWORD]` literal — substitua pela senha
+> que você definiu ao criar o projeto (passo 1).
+
+**Direct vs. Pooler — qual usar?**
+
+| Modo | Aba | Porta | Quando usar |
+|------|-----|-------|-------------|
+| Direct connection | URI | 5432 | ✅ Recomendado — o gunicorn tem pool próprio |
+| Transaction pooler | Connection pooling → URI | 6543 | Só se o Supabase gerenciar o pool |
+
+> Se não encontrar a seção "Connection string" na aba Database, procure por
+> **"Connection pooling"** — alguns planos exibem as strings lá.
 
 ### 4. Configurar variáveis de ambiente do backend
 
