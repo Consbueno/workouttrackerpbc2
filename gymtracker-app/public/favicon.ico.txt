@@ -1,0 +1,8 @@
+AVISO: Substitua este arquivo por um favicon.ico real (32x32 ou 16x16 ICO).
+Use o icon.svg como base para gerar os arquivos PNG e ICO via https://realfavicongenerator.net/
+ou converta manualmente com Inkscape/GIMP.
+
+Arquivos necessários:
+- favicon.ico (16x16 ou 32x32)
+- icon-192.png (192x192)
+- icon-512.png (512x512)
