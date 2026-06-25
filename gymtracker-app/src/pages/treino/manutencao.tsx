@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, Plus, Trash2, AlertCircle, RotateCcw, CheckCircle2, ChevronDown, ChevronUp, Save, Ban } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Trash2, AlertCircle, RotateCcw, CheckCircle2, ChevronDown, ChevronUp, Save, Ban, ArrowUp, ArrowDown } from 'lucide-react'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -448,6 +448,26 @@ export default function ManutencaoPage() {
     ])
   }
 
+  const moveBlock = (i: number, dir: -1 | 1) => {
+    const j = i + dir
+    if (j < 0 || j >= blocks.length) return
+    setBlocks(prev => {
+      const next = [...prev]
+      // Preserva duração de cada bloco, só troca nome/config
+      const durI = next[i].end_week - next[i].start_week + 1
+      const durJ = next[j].end_week - next[j].start_week + 1
+      ;[next[i], next[j]] = [next[j], next[i]]
+      // Recalcula semanas mantendo durações após troca
+      let week = 1
+      return next.map((b, idx) => {
+        const dur = idx === i ? durJ : idx === j ? durI : b.end_week - b.start_week + 1
+        const updated = { ...b, block_order: idx + 1, start_week: week, end_week: week + dur - 1 }
+        week += dur
+        return updated
+      })
+    })
+  }
+
   const removeBlock = (i: number) => {
     if (blocks.length <= 2) return
     setBlocks(prev => prev.filter((_, idx) => idx !== i).map((b, idx) => ({ ...b, block_order: idx + 1 })))
@@ -650,11 +670,27 @@ export default function ManutencaoPage() {
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-sm">Bloco {i + 1}</CardTitle>
-                        {blocks.length > 2 && (
-                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => removeBlock(i)}>
-                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        <div className="flex items-center gap-1">
+                          <Button
+                            size="icon" variant="ghost" className="h-7 w-7"
+                            onClick={() => moveBlock(i, -1)} disabled={i === 0}
+                            title="Mover para cima"
+                          >
+                            <ArrowUp className="h-3.5 w-3.5" />
                           </Button>
-                        )}
+                          <Button
+                            size="icon" variant="ghost" className="h-7 w-7"
+                            onClick={() => moveBlock(i, 1)} disabled={i === blocks.length - 1}
+                            title="Mover para baixo"
+                          >
+                            <ArrowDown className="h-3.5 w-3.5" />
+                          </Button>
+                          {blocks.length > 2 && (
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => removeBlock(i)}>
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-3">
