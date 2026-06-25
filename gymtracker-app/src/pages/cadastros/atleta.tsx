@@ -37,12 +37,20 @@ export default function AtletaPage() {
     queryFn: () => atletaApi.get().then(r => r.data.data),
   })
 
+  const toIsoDate = (d: string | undefined): string => {
+    if (!d) return ''
+    const s = String(d)
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0, 10)
+    const parsed = new Date(s)
+    return isNaN(parsed.getTime()) ? '' : parsed.toISOString().substring(0, 10)
+  }
+
   useEffect(() => {
     if (athlete) {
       setIsNew(false)
       setForm({
         full_name: athlete.full_name ?? '',
-        birth_date: athlete.birth_date ?? '',
+        birth_date: toIsoDate(athlete.birth_date),
         sex: athlete.sex ?? '',
         weight_kg: String(athlete.weight_kg ?? ''),
         height_cm: String(athlete.height_cm ?? ''),
