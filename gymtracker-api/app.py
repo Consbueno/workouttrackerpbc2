@@ -1,12 +1,23 @@
 import os
+import datetime
 from flask import Flask, jsonify, g
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, verify_jwt_in_request, get_jwt_identity
 from flask_bcrypt import Bcrypt
-from datetime import timedelta
+from flask.json.provider import DefaultJSONProvider
 
 from config import Config
 import db as database
+
+
+class ISOJSONProvider(DefaultJSONProvider):
+    """Serializa date/datetime como ISO 8601 (yyyy-MM-dd) em vez do formato HTTP do Flask 3."""
+    def default(self, o):
+        if isinstance(o, datetime.datetime):
+            return o.isoformat()
+        if isinstance(o, datetime.date):
+            return o.isoformat()
+        return super().default(o)
 
 bcrypt = Bcrypt()
 jwt = JWTManager()
@@ -14,6 +25,8 @@ jwt = JWTManager()
 
 def create_app():
     app = Flask(__name__)
+    app.json_provider_class = ISOJSONProvider
+    app.json = ISOJSONProvider(app)
     app.config.from_object(Config)
 
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(seconds=app.config["JWT_ACCESS_TOKEN_EXPIRES"])
