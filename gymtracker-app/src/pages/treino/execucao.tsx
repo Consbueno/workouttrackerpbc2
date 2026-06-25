@@ -87,7 +87,10 @@ export default function ExecucaoPage() {
       qc.invalidateQueries({ queryKey: ['programa-ativo'] })
       toast({ title: 'Treino revertido para pendente.' })
     },
-    onError: () => toast({ title: 'Erro ao reverter.', variant: 'destructive' }),
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Erro ao reverter.'
+      toast({ title: msg, variant: 'destructive' })
+    },
   })
 
   const handleExerciseChange = (id: number, field: string, value: unknown) => {

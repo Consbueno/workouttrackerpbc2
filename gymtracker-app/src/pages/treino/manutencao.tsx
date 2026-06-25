@@ -104,7 +104,10 @@ function CalendarioView({ onBack }: { onBack: () => void }) {
   const revertMutation = useMutation({
     mutationFn: (id: number) => diasApi.reverter(id),
     onSuccess: () => { invalidate(); toast({ title: 'Revertido para pendente.' }) },
-    onError: () => toast({ title: 'Erro ao reverter.', variant: 'destructive' }),
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Erro ao reverter.'
+      toast({ title: msg, variant: 'destructive' })
+    },
   })
 
   const savePlanMutation = useMutation({
