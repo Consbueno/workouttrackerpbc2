@@ -29,8 +29,7 @@ def create_app():
     app.json = ISOJSONProvider(app)
     app.config.from_object(Config)
 
-    _frontend_urls = [u.strip() for u in app.config.get("FRONTEND_URL", "").split(",") if u.strip()]
-    CORS(app, origins=_frontend_urls + ["http://localhost:5173", "http://localhost:3000"])
+    CORS(app)
     bcrypt.init_app(app)
     jwt.init_app(app)
 
