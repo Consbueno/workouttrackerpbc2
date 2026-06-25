@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, Plus, Trash2, AlertCircle, RotateCcw, CheckCircle2, ChevronDown, ChevronUp, Save, XOctagon } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Trash2, AlertCircle, RotateCcw, CheckCircle2, ChevronDown, ChevronUp, Save, Ban } from 'lucide-react'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -182,7 +182,7 @@ function CalendarioView({ onBack, programaId, onAbandon }: { onBack: () => void;
             disabled={abandonMutation.isPending}
             className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition-colors disabled:opacity-40"
           >
-            <XOctagon className="h-3.5 w-3.5" />
+            <Ban className="h-3.5 w-3.5" />
             Abandonar programa
           </button>
         )}
