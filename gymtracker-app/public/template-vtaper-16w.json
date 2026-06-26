@@ -1,0 +1,1246 @@
+﻿{
+  "nome": "Programa 16 Semanas - V-Taper",
+  "total_semanas": 16,
+  "weekly_cardio_freq": 2,
+  "blocos": [
+    {
+      "block_order": 1,
+      "nome": "Resistencia",
+      "semana_inicio": 1,
+      "semana_fim": 4,
+      "cor": "blue",
+      "target_reps": "15-25",
+      "target_intensity": "50-65% 1RM",
+      "rest_seconds": 45,
+      "weekly_freq": 4,
+      "split_letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ]
+    },
+    {
+      "block_order": 2,
+      "nome": "Hipertrofia",
+      "semana_inicio": 5,
+      "semana_fim": 10,
+      "cor": "yellow",
+      "target_reps": "8-12",
+      "target_intensity": "65-80% 1RM",
+      "rest_seconds": 75,
+      "weekly_freq": 5,
+      "split_letters": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ]
+    },
+    {
+      "block_order": 3,
+      "nome": "Forca",
+      "semana_inicio": 11,
+      "semana_fim": 15,
+      "cor": "red",
+      "target_reps": "3-6",
+      "target_intensity": "80-92% 1RM",
+      "rest_seconds": 180,
+      "weekly_freq": 4,
+      "split_letters": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ]
+    },
+    {
+      "block_order": 4,
+      "nome": "Deload",
+      "semana_inicio": 16,
+      "semana_fim": 16,
+      "cor": "gray",
+      "target_reps": "12-15",
+      "target_intensity": "50-60% 1RM",
+      "rest_seconds": 60,
+      "weekly_freq": 2,
+      "split_letters": [
+        "A",
+        "B"
+      ]
+    }
+  ],
+  "splits": [
+    {
+      "letter": "A",
+      "split_order": 1,
+      "descricao": "Peito + Triceps",
+      "muscle_groups": [
+        "Peito",
+        "Triceps"
+      ],
+      "exercicios": [
+        {
+          "nome": "Supino c/ Halteres (plano)",
+          "primary_muscle_group": "Peito",
+          "equipment": "dumbbell",
+          "exercise_type": "compound",
+          "exercise_order": 1,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "20",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "2": {
+              "sets": 4,
+              "reps": "10",
+              "load_kg": 0,
+              "rest_seconds": 75
+            },
+            "3": {
+              "sets": 5,
+              "reps": "4",
+              "load_kg": 0,
+              "rest_seconds": 180
+            },
+            "4": {
+              "sets": 2,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 60
+            }
+          }
+        },
+        {
+          "nome": "Supino Inclinado c/ Halteres (30 graus)",
+          "primary_muscle_group": "Peito",
+          "equipment": "dumbbell",
+          "exercise_type": "compound",
+          "exercise_order": 2,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "18",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "2": {
+              "sets": 4,
+              "reps": "10",
+              "load_kg": 0,
+              "rest_seconds": 75
+            },
+            "3": {
+              "sets": 4,
+              "reps": "5",
+              "load_kg": 0,
+              "rest_seconds": 180
+            },
+            "4": {
+              "sets": 2,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            }
+          }
+        },
+        {
+          "nome": "Crossover na Polia (declinado)",
+          "primary_muscle_group": "Peito",
+          "equipment": "cable",
+          "exercise_type": "isolation",
+          "exercise_order": 3,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "20",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 3,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            },
+            "3": {
+              "sets": 3,
+              "reps": "8",
+              "load_kg": 0,
+              "rest_seconds": 90
+            },
+            "4": {
+              "sets": 2,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 45
+            }
+          }
+        },
+        {
+          "nome": "Peck Deck / Fly Maquina",
+          "primary_muscle_group": "Peito",
+          "equipment": "machine",
+          "exercise_type": "isolation",
+          "exercise_order": 4,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "20",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 3,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            },
+            "4": {
+              "sets": 2,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 45
+            }
+          }
+        },
+        {
+          "nome": "Triceps Corda (polia alta)",
+          "primary_muscle_group": "Triceps",
+          "equipment": "cable",
+          "exercise_type": "isolation",
+          "exercise_order": 5,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "20",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 4,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            },
+            "3": {
+              "sets": 4,
+              "reps": "6",
+              "load_kg": 0,
+              "rest_seconds": 90
+            },
+            "4": {
+              "sets": 2,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 45
+            }
+          }
+        },
+        {
+          "nome": "Triceps Testa c/ Halteres",
+          "primary_muscle_group": "Triceps",
+          "equipment": "dumbbell",
+          "exercise_type": "isolation",
+          "exercise_order": 6,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "18",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 3,
+              "reps": "10",
+              "load_kg": 0,
+              "rest_seconds": 60
+            },
+            "3": {
+              "sets": 4,
+              "reps": "5",
+              "load_kg": 0,
+              "rest_seconds": 120
+            },
+            "4": {
+              "sets": 2,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 45
+            }
+          }
+        },
+        {
+          "nome": "Triceps Coice c/ Halter",
+          "primary_muscle_group": "Triceps",
+          "equipment": "dumbbell",
+          "exercise_type": "isolation",
+          "exercise_order": 7,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 3,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            }
+          }
+        }
+      ]
+    },
+    {
+      "letter": "B",
+      "split_order": 2,
+      "descricao": "Costas Largura + Biceps",
+      "muscle_groups": [
+        "Costas",
+        "Biceps"
+      ],
+      "exercicios": [
+        {
+          "nome": "Puxada Frontal (Lat Pulldown)",
+          "primary_muscle_group": "Costas",
+          "equipment": "cable",
+          "exercise_type": "compound",
+          "exercise_order": 1,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "20",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "2": {
+              "sets": 4,
+              "reps": "10",
+              "load_kg": 0,
+              "rest_seconds": 75
+            },
+            "3": {
+              "sets": 5,
+              "reps": "4",
+              "load_kg": 0,
+              "rest_seconds": 180
+            },
+            "4": {
+              "sets": 2,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 60
+            }
+          }
+        },
+        {
+          "nome": "Pullover c/ Halter (deitado)",
+          "primary_muscle_group": "Costas",
+          "equipment": "dumbbell",
+          "exercise_type": "compound",
+          "exercise_order": 2,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "18",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "2": {
+              "sets": 4,
+              "reps": "10",
+              "load_kg": 0,
+              "rest_seconds": 75
+            },
+            "3": {
+              "sets": 3,
+              "reps": "6",
+              "load_kg": 0,
+              "rest_seconds": 120
+            },
+            "4": {
+              "sets": 2,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            }
+          }
+        },
+        {
+          "nome": "Remada na Maquina (sentado)",
+          "primary_muscle_group": "Costas",
+          "equipment": "machine",
+          "exercise_type": "compound",
+          "exercise_order": 3,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "20",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "2": {
+              "sets": 4,
+              "reps": "10",
+              "load_kg": 0,
+              "rest_seconds": 75
+            },
+            "4": {
+              "sets": 2,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 60
+            }
+          }
+        },
+        {
+          "nome": "Remada Unilateral c/ Halter",
+          "primary_muscle_group": "Costas",
+          "equipment": "dumbbell",
+          "exercise_type": "compound",
+          "exercise_order": 4,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "18",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "2": {
+              "sets": 4,
+              "reps": "10",
+              "load_kg": 0,
+              "rest_seconds": 75
+            },
+            "3": {
+              "sets": 4,
+              "reps": "5",
+              "load_kg": 0,
+              "rest_seconds": 150
+            },
+            "4": {
+              "sets": 2,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            }
+          }
+        },
+        {
+          "nome": "Puxada Neutra Fechada",
+          "primary_muscle_group": "Costas",
+          "equipment": "cable",
+          "exercise_type": "compound",
+          "exercise_order": 5,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "18",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 3,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            }
+          }
+        },
+        {
+          "nome": "Rosca Direta c/ Halteres",
+          "primary_muscle_group": "Biceps",
+          "equipment": "dumbbell",
+          "exercise_type": "isolation",
+          "exercise_order": 6,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "20",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 3,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            },
+            "3": {
+              "sets": 3,
+              "reps": "6",
+              "load_kg": 0,
+              "rest_seconds": 90
+            },
+            "4": {
+              "sets": 2,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 45
+            }
+          }
+        },
+        {
+          "nome": "Rosca Martelo",
+          "primary_muscle_group": "Biceps",
+          "equipment": "dumbbell",
+          "exercise_type": "isolation",
+          "exercise_order": 7,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "18",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 3,
+              "reps": "10",
+              "load_kg": 0,
+              "rest_seconds": 60
+            },
+            "3": {
+              "sets": 3,
+              "reps": "5",
+              "load_kg": 0,
+              "rest_seconds": 90
+            },
+            "4": {
+              "sets": 2,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 45
+            }
+          }
+        },
+        {
+          "nome": "Rosca Concentrada",
+          "primary_muscle_group": "Biceps",
+          "equipment": "dumbbell",
+          "exercise_type": "isolation",
+          "exercise_order": 8,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 3,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            }
+          }
+        }
+      ]
+    },
+    {
+      "letter": "C",
+      "split_order": 3,
+      "descricao": "Ombros",
+      "muscle_groups": [
+        "Ombros",
+        "Trapezio"
+      ],
+      "exercicios": [
+        {
+          "nome": "Desenvolvimento c/ Halteres (sentado c/ encosto)",
+          "primary_muscle_group": "Ombros",
+          "equipment": "dumbbell",
+          "exercise_type": "compound",
+          "exercise_order": 1,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "18",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "2": {
+              "sets": 4,
+              "reps": "10",
+              "load_kg": 0,
+              "rest_seconds": 75
+            },
+            "3": {
+              "sets": 5,
+              "reps": "4",
+              "load_kg": 0,
+              "rest_seconds": 180
+            },
+            "4": {
+              "sets": 2,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 60
+            }
+          }
+        },
+        {
+          "nome": "Elevacao Lateral c/ Halteres",
+          "primary_muscle_group": "Ombros",
+          "equipment": "dumbbell",
+          "exercise_type": "isolation",
+          "exercise_order": 2,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "20",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 4,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            },
+            "3": {
+              "sets": 3,
+              "reps": "8",
+              "load_kg": 0,
+              "rest_seconds": 90
+            },
+            "4": {
+              "sets": 2,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 45
+            }
+          }
+        },
+        {
+          "nome": "Elevacao Lateral na Polia (unilateral)",
+          "primary_muscle_group": "Ombros",
+          "equipment": "cable",
+          "exercise_type": "isolation",
+          "exercise_order": 3,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "20",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 4,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            },
+            "4": {
+              "sets": 2,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 45
+            }
+          }
+        },
+        {
+          "nome": "Desenvolvimento na Maquina",
+          "primary_muscle_group": "Ombros",
+          "equipment": "machine",
+          "exercise_type": "compound",
+          "exercise_order": 4,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "18",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "2": {
+              "sets": 3,
+              "reps": "10",
+              "load_kg": 0,
+              "rest_seconds": 75
+            },
+            "3": {
+              "sets": 4,
+              "reps": "5",
+              "load_kg": 0,
+              "rest_seconds": 150
+            }
+          }
+        },
+        {
+          "nome": "Elevacao Frontal c/ Halteres",
+          "primary_muscle_group": "Ombros",
+          "equipment": "dumbbell",
+          "exercise_type": "isolation",
+          "exercise_order": 5,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "18",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 3,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            }
+          }
+        },
+        {
+          "nome": "Face Pull na Polia",
+          "primary_muscle_group": "Ombros",
+          "equipment": "cable",
+          "exercise_type": "isolation",
+          "exercise_order": 6,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "20",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 3,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "3": {
+              "sets": 3,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            },
+            "4": {
+              "sets": 2,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 45
+            }
+          }
+        },
+        {
+          "nome": "Encolhimento c/ Halteres",
+          "primary_muscle_group": "Trapezio",
+          "equipment": "dumbbell",
+          "exercise_type": "isolation",
+          "exercise_order": 7,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "20",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 3,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            },
+            "3": {
+              "sets": 3,
+              "reps": "6",
+              "load_kg": 0,
+              "rest_seconds": 90
+            }
+          }
+        }
+      ]
+    },
+    {
+      "letter": "D",
+      "split_order": 4,
+      "descricao": "Pernas",
+      "muscle_groups": [
+        "Quadriceps",
+        "Isquiotibiais",
+        "Gluteos",
+        "Panturrilha"
+      ],
+      "exercicios": [
+        {
+          "nome": "Leg Press 45 graus",
+          "primary_muscle_group": "Quadriceps",
+          "equipment": "machine",
+          "exercise_type": "compound",
+          "exercise_order": 1,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "20",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "2": {
+              "sets": 4,
+              "reps": "10",
+              "load_kg": 0,
+              "rest_seconds": 75
+            },
+            "3": {
+              "sets": 5,
+              "reps": "4",
+              "load_kg": 0,
+              "rest_seconds": 180
+            },
+            "4": {
+              "sets": 2,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 60
+            }
+          }
+        },
+        {
+          "nome": "Hack Squat na Maquina",
+          "primary_muscle_group": "Quadriceps",
+          "equipment": "machine",
+          "exercise_type": "compound",
+          "exercise_order": 2,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "18",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "2": {
+              "sets": 4,
+              "reps": "10",
+              "load_kg": 0,
+              "rest_seconds": 75
+            },
+            "3": {
+              "sets": 4,
+              "reps": "5",
+              "load_kg": 0,
+              "rest_seconds": 180
+            },
+            "4": {
+              "sets": 2,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            }
+          }
+        },
+        {
+          "nome": "Leg Press Unilateral",
+          "primary_muscle_group": "Quadriceps",
+          "equipment": "machine",
+          "exercise_type": "isolation",
+          "exercise_order": 3,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "2": {
+              "sets": 3,
+              "reps": "10",
+              "load_kg": 0,
+              "rest_seconds": 75
+            }
+          }
+        },
+        {
+          "nome": "Cadeira Extensora",
+          "primary_muscle_group": "Quadriceps",
+          "equipment": "machine",
+          "exercise_type": "isolation",
+          "exercise_order": 4,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "20",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 4,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            },
+            "3": {
+              "sets": 3,
+              "reps": "8",
+              "load_kg": 0,
+              "rest_seconds": 90
+            },
+            "4": {
+              "sets": 2,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 45
+            }
+          }
+        },
+        {
+          "nome": "Mesa Flexora (Lying Curl)",
+          "primary_muscle_group": "Isquiotibiais",
+          "equipment": "machine",
+          "exercise_type": "isolation",
+          "exercise_order": 5,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "20",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 4,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            },
+            "3": {
+              "sets": 3,
+              "reps": "8",
+              "load_kg": 0,
+              "rest_seconds": 90
+            },
+            "4": {
+              "sets": 2,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 45
+            }
+          }
+        },
+        {
+          "nome": "Hip Thrust c/ Barra",
+          "primary_muscle_group": "Gluteos",
+          "equipment": "barbell",
+          "exercise_type": "compound",
+          "exercise_order": 6,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "18",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "2": {
+              "sets": 4,
+              "reps": "10",
+              "load_kg": 0,
+              "rest_seconds": 75
+            },
+            "3": {
+              "sets": 4,
+              "reps": "5",
+              "load_kg": 0,
+              "rest_seconds": 150
+            },
+            "4": {
+              "sets": 2,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            }
+          }
+        },
+        {
+          "nome": "Panturrilha Sentado (maquina)",
+          "primary_muscle_group": "Panturrilha",
+          "equipment": "machine",
+          "exercise_type": "isolation",
+          "exercise_order": 7,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "20",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 4,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "3": {
+              "sets": 3,
+              "reps": "10",
+              "load_kg": 0,
+              "rest_seconds": 60
+            },
+            "4": {
+              "sets": 2,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 30
+            }
+          }
+        },
+        {
+          "nome": "Panturrilha em Pe (maquina)",
+          "primary_muscle_group": "Panturrilha",
+          "equipment": "machine",
+          "exercise_type": "isolation",
+          "exercise_order": 8,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "20",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 3,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 45
+            }
+          }
+        }
+      ]
+    },
+    {
+      "letter": "E",
+      "split_order": 5,
+      "descricao": "Costas Espessura + Core",
+      "muscle_groups": [
+        "Costas",
+        "Core"
+      ],
+      "exercicios": [
+        {
+          "nome": "Remada c/ Halteres (peito apoiado no banco inclinado)",
+          "primary_muscle_group": "Costas",
+          "equipment": "dumbbell",
+          "exercise_type": "compound",
+          "exercise_order": 1,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "18",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "2": {
+              "sets": 4,
+              "reps": "10",
+              "load_kg": 0,
+              "rest_seconds": 75
+            },
+            "3": {
+              "sets": 5,
+              "reps": "5",
+              "load_kg": 0,
+              "rest_seconds": 180
+            },
+            "4": {
+              "sets": 2,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            }
+          }
+        },
+        {
+          "nome": "Remada Baixa na Polia (sentado)",
+          "primary_muscle_group": "Costas",
+          "equipment": "cable",
+          "exercise_type": "compound",
+          "exercise_order": 2,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "20",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "2": {
+              "sets": 4,
+              "reps": "10",
+              "load_kg": 0,
+              "rest_seconds": 75
+            },
+            "3": {
+              "sets": 4,
+              "reps": "5",
+              "load_kg": 0,
+              "rest_seconds": 150
+            },
+            "4": {
+              "sets": 2,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 60
+            }
+          }
+        },
+        {
+          "nome": "Remada Maquina (peito apoiado)",
+          "primary_muscle_group": "Costas",
+          "equipment": "machine",
+          "exercise_type": "compound",
+          "exercise_order": 3,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "18",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "2": {
+              "sets": 4,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 75
+            },
+            "4": {
+              "sets": 2,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 60
+            }
+          }
+        },
+        {
+          "nome": "Face Pull na Polia",
+          "primary_muscle_group": "Ombros",
+          "equipment": "cable",
+          "exercise_type": "isolation",
+          "exercise_order": 4,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "20",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 3,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "3": {
+              "sets": 3,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 60
+            },
+            "4": {
+              "sets": 2,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 45
+            }
+          }
+        },
+        {
+          "nome": "Prancha Frontal",
+          "primary_muscle_group": "Core",
+          "equipment": "bodyweight",
+          "exercise_type": "isometric",
+          "exercise_order": 5,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "30s",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 4,
+              "reps": "40s",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "3": {
+              "sets": 3,
+              "reps": "45s",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "4": {
+              "sets": 2,
+              "reps": "30s",
+              "load_kg": 0,
+              "rest_seconds": 30
+            }
+          }
+        },
+        {
+          "nome": "Abdominal Infra na Polia (Kneeling Crunch)",
+          "primary_muscle_group": "Core",
+          "equipment": "cable",
+          "exercise_type": "isolation",
+          "exercise_order": 6,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "20",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 4,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "3": {
+              "sets": 3,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "4": {
+              "sets": 2,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 30
+            }
+          }
+        },
+        {
+          "nome": "Elevacao de Pernas (paralela ou deitado)",
+          "primary_muscle_group": "Core",
+          "equipment": "bodyweight",
+          "exercise_type": "isolation",
+          "exercise_order": 7,
+          "configs": {
+            "1": {
+              "sets": 3,
+              "reps": "15",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "2": {
+              "sets": 4,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 30
+            },
+            "3": {
+              "sets": 3,
+              "reps": "10",
+              "load_kg": 0,
+              "rest_seconds": 45
+            },
+            "4": {
+              "sets": 2,
+              "reps": "12",
+              "load_kg": 0,
+              "rest_seconds": 30
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

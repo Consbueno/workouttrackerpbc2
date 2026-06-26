@@ -275,3 +275,100 @@ def toggle_gym(gym_id):
         return jsonify({"error": "Academia não encontrada."}), 404
     status = "ativada" if row["is_active"] else "desativada"
     return jsonify({"data": dict(row), "message": f"Academia {status} com sucesso."})
+
+
+# ── IMPORTAÇÃO DE EXERCÍCIOS ─────────────────────────────────────────────────
+
+_EXERCICIOS_PADRAO = [
+    {"name": "Supino c/ Halteres (plano)",                       "primary_muscle_group": "Peito",          "equipment": "dumbbell",   "exercise_type": "compound"},
+    {"name": "Supino Inclinado c/ Halteres (30°)",               "primary_muscle_group": "Peito",          "equipment": "dumbbell",   "exercise_type": "compound"},
+    {"name": "Crossover na Polia (declinado)",                   "primary_muscle_group": "Peito",          "equipment": "cable",      "exercise_type": "isolation"},
+    {"name": "Peck Deck / Fly Máquina",                          "primary_muscle_group": "Peito",          "equipment": "machine",    "exercise_type": "isolation"},
+    {"name": "Tríceps Corda (polia alta)",                       "primary_muscle_group": "Tríceps",        "equipment": "cable",      "exercise_type": "isolation"},
+    {"name": "Tríceps Testa c/ Halteres",                        "primary_muscle_group": "Tríceps",        "equipment": "dumbbell",   "exercise_type": "isolation"},
+    {"name": "Tríceps Coice c/ Halter",                          "primary_muscle_group": "Tríceps",        "equipment": "dumbbell",   "exercise_type": "isolation"},
+    {"name": "Puxada Frontal (Lat Pulldown)",                    "primary_muscle_group": "Costas",         "equipment": "cable",      "exercise_type": "compound"},
+    {"name": "Pullover c/ Halter (deitado)",                     "primary_muscle_group": "Costas",         "equipment": "dumbbell",   "exercise_type": "compound"},
+    {"name": "Remada na Máquina (sentado)",                      "primary_muscle_group": "Costas",         "equipment": "machine",    "exercise_type": "compound"},
+    {"name": "Remada Unilateral c/ Halter",                      "primary_muscle_group": "Costas",         "equipment": "dumbbell",   "exercise_type": "compound"},
+    {"name": "Puxada Neutra Fechada",                            "primary_muscle_group": "Costas",         "equipment": "cable",      "exercise_type": "compound"},
+    {"name": "Rosca Direta c/ Halteres",                         "primary_muscle_group": "Bíceps",         "equipment": "dumbbell",   "exercise_type": "isolation"},
+    {"name": "Rosca Martelo",                                    "primary_muscle_group": "Bíceps",         "equipment": "dumbbell",   "exercise_type": "isolation"},
+    {"name": "Rosca Concentrada",                                "primary_muscle_group": "Bíceps",         "equipment": "dumbbell",   "exercise_type": "isolation"},
+    {"name": "Desenvolvimento c/ Halteres (sentado c/ encosto)","primary_muscle_group": "Ombros",         "equipment": "dumbbell",   "exercise_type": "compound"},
+    {"name": "Elevação Lateral c/ Halteres",                    "primary_muscle_group": "Ombros",         "equipment": "dumbbell",   "exercise_type": "isolation"},
+    {"name": "Elevação Lateral na Polia (unilateral)",           "primary_muscle_group": "Ombros",         "equipment": "cable",      "exercise_type": "isolation"},
+    {"name": "Desenvolvimento na Máquina",                       "primary_muscle_group": "Ombros",         "equipment": "machine",    "exercise_type": "compound"},
+    {"name": "Elevação Frontal c/ Halteres",                    "primary_muscle_group": "Ombros",         "equipment": "dumbbell",   "exercise_type": "isolation"},
+    {"name": "Face Pull na Polia",                               "primary_muscle_group": "Ombros",         "equipment": "cable",      "exercise_type": "isolation"},
+    {"name": "Encolhimento c/ Halteres",                         "primary_muscle_group": "Trapézio",       "equipment": "dumbbell",   "exercise_type": "isolation"},
+    {"name": "Leg Press 45°",                                    "primary_muscle_group": "Quadríceps",     "equipment": "machine",    "exercise_type": "compound"},
+    {"name": "Hack Squat na Máquina",                            "primary_muscle_group": "Quadríceps",     "equipment": "machine",    "exercise_type": "compound"},
+    {"name": "Leg Press Unilateral",                             "primary_muscle_group": "Quadríceps",     "equipment": "machine",    "exercise_type": "isolation"},
+    {"name": "Cadeira Extensora",                                "primary_muscle_group": "Quadríceps",     "equipment": "machine",    "exercise_type": "isolation"},
+    {"name": "Mesa Flexora (Lying Curl)",                        "primary_muscle_group": "Isquiotibiais",  "equipment": "machine",    "exercise_type": "isolation"},
+    {"name": "Hip Thrust c/ Barra",                              "primary_muscle_group": "Glúteos",        "equipment": "barbell",    "exercise_type": "compound"},
+    {"name": "Panturrilha Sentado (máquina)",                   "primary_muscle_group": "Panturrilha",    "equipment": "machine",    "exercise_type": "isolation"},
+    {"name": "Panturrilha em Pé (máquina)",                     "primary_muscle_group": "Panturrilha",    "equipment": "machine",    "exercise_type": "isolation"},
+    {"name": "Remada c/ Halteres (peito apoiado no banco inclinado)", "primary_muscle_group": "Costas",   "equipment": "dumbbell",   "exercise_type": "compound"},
+    {"name": "Remada Baixa na Polia (sentado)",                  "primary_muscle_group": "Costas",         "equipment": "cable",      "exercise_type": "compound"},
+    {"name": "Remada Máquina (peito apoiado)",                   "primary_muscle_group": "Costas",         "equipment": "machine",    "exercise_type": "compound"},
+    {"name": "Prancha Frontal",                                  "primary_muscle_group": "Core",           "equipment": "bodyweight", "exercise_type": "isometric"},
+    {"name": "Abdominal Infra na Polia (Kneeling Crunch)",      "primary_muscle_group": "Core",           "equipment": "cable",      "exercise_type": "isolation"},
+    {"name": "Elevação de Pernas (paralela ou deitado)",         "primary_muscle_group": "Core",           "equipment": "bodyweight", "exercise_type": "isolation"},
+]
+
+
+def _upsert_exercises(user_id, exercicios_list):
+    criados = 0
+    ignorados = 0
+    with db.db() as conn:
+        cur = conn.cursor()
+        for ex in exercicios_list:
+            cur.execute(
+                "SELECT id FROM exercises WHERE user_id = %s AND name = %s LIMIT 1",
+                (user_id, ex["name"]),
+            )
+            if cur.fetchone():
+                ignorados += 1
+            else:
+                cur.execute(
+                    """INSERT INTO exercises (user_id, name, primary_muscle_group, equipment, exercise_type)
+                       VALUES (%s, %s, %s, %s, %s)""",
+                    (user_id, ex["name"], ex["primary_muscle_group"], ex["equipment"], ex["exercise_type"]),
+                )
+                criados += 1
+    return criados, ignorados
+
+
+@bp.route("/exercicios/carregar-padrao", methods=["POST"])
+@jwt_required()
+def carregar_exercicios_padrao():
+    user_id = int(get_jwt_identity())
+    criados, ignorados = _upsert_exercises(user_id, _EXERCICIOS_PADRAO)
+    return jsonify({
+        "message": f"{criados} exercício(s) adicionado(s), {ignorados} já existia(m).",
+        "criados": criados,
+        "ignorados": ignorados,
+        "total": len(_EXERCICIOS_PADRAO),
+    }), 201
+
+
+@bp.route("/exercicios/importar", methods=["POST"])
+@jwt_required()
+def importar_exercicios():
+    user_id = int(get_jwt_identity())
+    data = request.get_json() or {}
+    lista = data.get("exercicios", [])
+    if not lista:
+        return jsonify({"error": "Campo 'exercicios' é obrigatório e não pode ser vazio."}), 400
+    if not isinstance(lista, list):
+        return jsonify({"error": "Campo 'exercicios' deve ser uma lista."}), 400
+
+    criados, ignorados = _upsert_exercises(user_id, lista)
+    return jsonify({
+        "message": f"{criados} exercício(s) importado(s), {ignorados} já existia(m).",
+        "criados": criados,
+        "ignorados": ignorados,
+        "total": len(lista),
+    }), 201

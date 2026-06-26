@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, ChangeEvent } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Search, Pencil, Power } from 'lucide-react'
+import { Plus, Search, Pencil, Power, Upload, Download, ListChecks } from 'lucide-react'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -36,6 +36,9 @@ export default function ExerciciosPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Exercise | null>(null)
   const [form, setForm] = useState(emptyForm)
+  const [importOpen, setImportOpen] = useState(false)
+  const [importJson, setImportJson] = useState('')
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const { data: exercises = [], isLoading } = useQuery<Exercise[]>({
     queryKey: ['exercicios'],
@@ -88,6 +91,45 @@ export default function ExerciciosPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['exercicios'] }),
   })
 
+  const carregarPadraoMutation = useMutation({
+    mutationFn: () => exerciciosApi.carregarPadrao(),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ['exercicios'] })
+      setImportOpen(false)
+      const { criados, ignorados } = res.data
+      toast({ title: `${criados} adicionado(s), ${ignorados} já existia(m).` })
+    },
+    onError: () => toast({ title: 'Erro ao carregar lista padrão.', variant: 'destructive' }),
+  })
+
+  const importarMutation = useMutation({
+    mutationFn: () => {
+      let parsed: Record<string, unknown>[]
+      try { parsed = JSON.parse(importJson) } catch { throw new Error('JSON inválido.') }
+      if (!Array.isArray(parsed)) throw new Error('O JSON deve ser um array de exercícios.')
+      return exerciciosApi.importar(parsed)
+    },
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ['exercicios'] })
+      setImportOpen(false)
+      setImportJson('')
+      const { criados, ignorados } = res.data
+      toast({ title: `${criados} importado(s), ${ignorados} já existia(m).` })
+    },
+    onError: (err: unknown) => {
+      const msg = (err as Error).message ?? 'Erro ao importar.'
+      toast({ title: 'Erro', description: msg, variant: 'destructive' })
+    },
+  })
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => setImportJson(ev.target?.result as string)
+    reader.readAsText(file)
+  }
+
   const typeLabel = (t: string) => EXERCISE_TYPES.find(e => e.value === t)?.label ?? t
 
   return (
@@ -95,7 +137,14 @@ export default function ExerciciosPage() {
       <PageHeader
         title="Exercícios"
         description="Gerencie sua biblioteca de exercícios."
-        actions={<Button onClick={openCreate}><Plus className="h-4 w-4 mr-1" />Novo Exercício</Button>}
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <Upload className="h-4 w-4 mr-1" />Importar
+            </Button>
+            <Button onClick={openCreate}><Plus className="h-4 w-4 mr-1" />Novo Exercício</Button>
+          </div>
+        }
       />
 
       {/* Filtros */}
@@ -159,7 +208,70 @@ export default function ExerciciosPage() {
         </div>
       )}
 
-      {/* Modal */}
+      {/* Modal Importar */}
+      <Dialog open={importOpen} onOpenChange={setImportOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Importar Exercícios</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Card className="border-dashed">
+              <CardContent className="pt-4 space-y-2">
+                <p className="text-sm font-medium">Lista padrão V-Taper (36 exercícios)</p>
+                <p className="text-xs text-muted-foreground">Carrega todos os exercícios do programa 16 semanas. Exercícios já existentes são ignorados.</p>
+                <Button
+                  className="w-full"
+                  onClick={() => carregarPadraoMutation.mutate()}
+                  disabled={carregarPadraoMutation.isPending}
+                >
+                  <ListChecks className="h-4 w-4 mr-2" />
+                  {carregarPadraoMutation.isPending ? 'Carregando...' : 'Carregar lista padrão'}
+                </Button>
+              </CardContent>
+            </Card>
+
+            <div className="relative flex items-center gap-2">
+              <div className="flex-1 border-t" />
+              <span className="text-xs text-muted-foreground px-2">ou importar JSON</span>
+              <div className="flex-1 border-t" />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
+                  <Upload className="h-3 w-3 mr-1" />Abrir arquivo
+                </Button>
+                <a
+                  href="/template-vtaper-16w.json"
+                  download
+                  className="text-xs text-primary underline underline-offset-2"
+                >
+                  <Download className="h-3 w-3 inline mr-1" />baixar template
+                </a>
+                <input ref={fileRef} type="file" accept=".json" className="hidden" onChange={handleFileChange} />
+              </div>
+              <Textarea
+                placeholder={'[\n  {\n    "name": "Nome do exercício",\n    "primary_muscle_group": "Peito",\n    "equipment": "dumbbell",\n    "exercise_type": "compound"\n  }\n]'}
+                rows={8}
+                className="font-mono text-xs resize-none"
+                value={importJson}
+                onChange={e => setImportJson(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setImportOpen(false); setImportJson('') }}>Cancelar</Button>
+            <Button
+              onClick={() => importarMutation.mutate()}
+              disabled={importarMutation.isPending || !importJson.trim()}
+            >
+              {importarMutation.isPending ? 'Importando...' : 'Importar JSON'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Criar/Editar */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>

@@ -999,3 +999,207 @@ def _save_exercise_data(day_id, exercises):
                 day_id,
             ),
         )
+
+
+# ── IMPORTAÇÃO DE PROGRAMA COMPLETO ─────────────────────────────────────────
+
+def _generate_training_days_from_schedule(conn, program_id, blocks_db, splits_db, block_schedule):
+    """Gera training_days com frequência e splits variáveis por bloco."""
+    cur = conn.cursor()
+    day_number = 0
+    split_by_letter = {s["letter"]: s for s in splits_db}
+
+    for block in sorted(blocks_db, key=lambda b: b["block_order"]):
+        block_id = block["id"]
+        block_order = block["block_order"]
+        schedule = block_schedule.get(block_order, {})
+        weekly_freq = schedule.get("weekly_freq", 4)
+        split_letters = schedule.get("split_letters") or [s["letter"] for s in sorted(splits_db, key=lambda s: s["split_order"])]
+        splits_for_block = [split_by_letter[l] for l in split_letters if l in split_by_letter]
+
+        if not splits_for_block:
+            continue
+
+        split_idx = 0
+        for week in range(block["start_week"], block["end_week"] + 1):
+            for _ in range(weekly_freq):
+                day_number += 1
+                split = splits_for_block[split_idx % len(splits_for_block)]
+                split_id = split["id"]
+                split_idx += 1
+
+                cur.execute(
+                    """INSERT INTO training_days
+                       (program_id, split_id, block_id, week_number, day_number, status)
+                       VALUES (%s, %s, %s, %s, %s, 'pending') RETURNING id""",
+                    (program_id, split_id, block_id, week, day_number),
+                )
+                day_id = cur.fetchone()["id"]
+
+                cur.execute(
+                    """SELECT se.id as split_exercise_id, se.exercise_id, se.exercise_order,
+                              sebc.sets, sebc.reps, sebc.load_kg, sebc.rest_seconds
+                       FROM split_exercises se
+                       JOIN split_exercise_block_config sebc
+                         ON sebc.split_exercise_id = se.id AND sebc.block_id = %s
+                       WHERE se.split_id = %s AND sebc.is_included = TRUE
+                       ORDER BY se.exercise_order""",
+                    (block_id, split_id),
+                )
+                for ex in cur.fetchall():
+                    cur.execute(
+                        """INSERT INTO training_day_exercises
+                           (training_day_id, split_exercise_id, exercise_id,
+                            planned_sets, planned_reps, planned_load_kg, planned_rest_seconds)
+                           VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+                        (
+                            day_id,
+                            ex["split_exercise_id"],
+                            ex["exercise_id"],
+                            ex["sets"] or 3,
+                            ex["reps"] or "10",
+                            float(ex["load_kg"]) if ex["load_kg"] is not None else 0,
+                            ex["rest_seconds"] or 60,
+                        ),
+                    )
+
+
+@bp.route("/programas/importar", methods=["POST"])
+@jwt_required()
+def importar_programa():
+    user_id = int(get_jwt_identity())
+    data = request.get_json() or {}
+
+    if not data.get("blocos") or not data.get("splits"):
+        return jsonify({"error": "Campos 'blocos' e 'splits' são obrigatórios."}), 400
+
+    athlete = db.query_one("SELECT id FROM athletes WHERE user_id = %s LIMIT 1", (user_id,))
+    if not athlete:
+        return jsonify({"error": "Cadastre seu perfil de atleta antes de importar um programa."}), 400
+    athlete_id = athlete["id"]
+
+    gym = db.query_one("SELECT id FROM gyms WHERE user_id = %s AND is_active = TRUE LIMIT 1", (user_id,))
+    gym_id = gym["id"] if gym else None
+
+    nome = data.get("nome", "Programa Importado")
+    total_semanas = int(data.get("total_semanas", 16))
+    weekly_cardio_freq = int(data.get("weekly_cardio_freq", 0))
+    max_freq = max((int(b.get("weekly_freq", 4)) for b in data["blocos"]), default=4)
+
+    db.execute(
+        "UPDATE training_programs SET status='archived', updated_at=NOW() WHERE user_id=%s AND status='active'",
+        (user_id,),
+    )
+
+    with db.db() as conn:
+        cur = conn.cursor()
+
+        cur.execute(
+            """INSERT INTO training_programs
+               (user_id, athlete_id, gym_id, name, total_weeks, weekly_training_freq, weekly_cardio_freq, status)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, 'active') RETURNING id""",
+            (user_id, athlete_id, gym_id, nome, total_semanas, max_freq, weekly_cardio_freq),
+        )
+        program_id = cur.fetchone()["id"]
+
+        block_ids = {}
+        block_schedule = {}
+        for bloco in data["blocos"]:
+            cur.execute(
+                """INSERT INTO training_blocks
+                   (program_id, block_order, name, start_week, end_week, color,
+                    target_reps, target_intensity, default_rest_seconds)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id""",
+                (
+                    program_id,
+                    int(bloco["block_order"]),
+                    bloco["nome"],
+                    int(bloco["semana_inicio"]),
+                    int(bloco["semana_fim"]),
+                    bloco.get("cor", "blue"),
+                    bloco["target_reps"],
+                    bloco["target_intensity"],
+                    int(bloco.get("rest_seconds", 60)),
+                ),
+            )
+            block_db_id = cur.fetchone()["id"]
+            block_ids[int(bloco["block_order"])] = block_db_id
+            block_schedule[int(bloco["block_order"])] = {
+                "weekly_freq": int(bloco.get("weekly_freq", 4)),
+                "split_letters": bloco.get("split_letters", []),
+            }
+
+        for split in data["splits"]:
+            letter = split["letter"]
+            muscle_groups = split.get("muscle_groups", [])
+            cur.execute(
+                """INSERT INTO training_splits
+                   (program_id, letter, description, muscle_groups, split_order)
+                   VALUES (%s, %s, %s, %s, %s) RETURNING id""",
+                (program_id, letter, split.get("descricao", f"Split {letter}"), muscle_groups, int(split["split_order"])),
+            )
+            split_id = cur.fetchone()["id"]
+
+            for ex_data in split.get("exercicios", []):
+                ex_name = ex_data["nome"]
+                cur.execute(
+                    "SELECT id FROM exercises WHERE user_id = %s AND name = %s LIMIT 1",
+                    (user_id, ex_name),
+                )
+                ex_row = cur.fetchone()
+                if ex_row:
+                    exercise_id = ex_row["id"]
+                else:
+                    cur.execute(
+                        """INSERT INTO exercises (user_id, name, primary_muscle_group, equipment, exercise_type)
+                           VALUES (%s, %s, %s, %s, %s) RETURNING id""",
+                        (
+                            user_id, ex_name,
+                            ex_data.get("primary_muscle_group", ""),
+                            ex_data.get("equipment", "dumbbell"),
+                            ex_data.get("exercise_type", "compound"),
+                        ),
+                    )
+                    exercise_id = cur.fetchone()["id"]
+
+                cur.execute(
+                    "INSERT INTO split_exercises (split_id, exercise_id, exercise_order) VALUES (%s, %s, %s) RETURNING id",
+                    (split_id, exercise_id, int(ex_data["exercise_order"])),
+                )
+                split_exercise_id = cur.fetchone()["id"]
+
+                configs = ex_data.get("configs", {})
+                for block_order, block_db_id in block_ids.items():
+                    cfg = configs.get(str(block_order))
+                    if cfg:
+                        cur.execute(
+                            """INSERT INTO split_exercise_block_config
+                               (split_exercise_id, block_id, sets, reps, load_kg, rest_seconds, is_included)
+                               VALUES (%s, %s, %s, %s, %s, %s, TRUE)""",
+                            (
+                                split_exercise_id, block_db_id,
+                                int(cfg["sets"]), str(cfg["reps"]),
+                                float(cfg.get("load_kg", 0)),
+                                int(cfg.get("rest_seconds", 60)),
+                            ),
+                        )
+                    else:
+                        cur.execute(
+                            """INSERT INTO split_exercise_block_config
+                               (split_exercise_id, block_id, sets, reps, load_kg, rest_seconds, is_included)
+                               VALUES (%s, %s, 1, '-', 0, 60, FALSE)""",
+                            (split_exercise_id, block_db_id),
+                        )
+
+        cur.execute("SELECT * FROM training_blocks WHERE program_id = %s ORDER BY block_order", (program_id,))
+        blocks_db = cur.fetchall()
+        cur.execute("SELECT * FROM training_splits WHERE program_id = %s ORDER BY split_order", (program_id,))
+        splits_db = cur.fetchall()
+
+        _generate_training_days_from_schedule(conn, program_id, blocks_db, splits_db, block_schedule)
+
+    program = db.query_one("SELECT * FROM training_programs WHERE id = %s", (program_id,))
+    return jsonify({
+        "data": _row_to_dict(program),
+        "message": f"Programa '{nome}' importado com sucesso! Bom treino!",
+    }), 201

@@ -11,6 +11,7 @@ export const programasApi = {
   progressao: (id: number, percentual: number) =>
     api.post(`/treino/programas/${id}/progressao`, { percentual }),
   abandonar: (id: number) => api.patch(`/treino/programas/${id}/abandonar`),
+  importar: (data: Record<string, unknown>) => api.post('/treino/programas/importar', data),
 }
 
 export const diasApi = {

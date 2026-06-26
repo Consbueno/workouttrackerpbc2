@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, Plus, Trash2, AlertCircle, RotateCcw, CheckCircle2, ChevronDown, ChevronUp, Save, Ban, ArrowUp, ArrowDown } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Trash2, AlertCircle, RotateCcw, CheckCircle2, ChevronDown, ChevronUp, Save, Ban, ArrowUp, ArrowDown, Upload, Download } from 'lucide-react'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
 import { exerciciosApi, atletaApi, academiaApi } from '@/api/cadastros'
 import { programasApi, diasApi } from '@/api/treino'
 import { MUSCLE_GROUPS, BLOCK_COLORS } from '@/lib/constants'
@@ -345,6 +347,9 @@ export default function ManutencaoPage() {
   const [step, setStep] = useState(1)
   // null = aguardando verificação de programa ativo; true = calendário; false = wizard
   const [showCalendario, setShowCalendario] = useState<boolean | null>(null)
+  const [importOpen, setImportOpen] = useState(false)
+  const [importJson, setImportJson] = useState('')
+  const fileRef = useRef<HTMLInputElement>(null)
 
   // Step 1
   const [programName, setProgramName] = useState('Ciclo 1 — Periodização 16 Semanas')
@@ -434,6 +439,35 @@ export default function ManutencaoPage() {
       toast({ title: 'Erro', description: msg, variant: 'destructive' })
     },
   })
+
+  const importarMutation = useMutation({
+    mutationFn: () => {
+      let parsed: Record<string, unknown>
+      try { parsed = JSON.parse(importJson) } catch { throw new Error('JSON inválido.') }
+      return programasApi.importar(parsed)
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['programa-ativo'] })
+      qc.invalidateQueries({ queryKey: ['todos-dias'] })
+      setImportOpen(false)
+      setImportJson('')
+      toast({ title: 'Programa importado com sucesso!' })
+      setShowCalendario(true)
+    },
+    onError: (err: unknown) => {
+      const apiMsg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+      const jsMsg = (err as Error).message
+      toast({ title: 'Erro', description: apiMsg ?? jsMsg ?? 'Erro ao importar.', variant: 'destructive' })
+    },
+  })
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => setImportJson(ev.target?.result as string)
+    reader.readAsText(file)
+  }
 
   // ── Manipulação de blocos ──────────────────────────────────────────────
 
@@ -565,11 +599,18 @@ export default function ManutencaoPage() {
             <Button size="sm" variant="outline" onClick={() => setShowCalendario(false)}>
               Novo Programa
             </Button>
-          ) : programaAtivo ? (
-            <Button size="sm" variant="outline" onClick={() => setShowCalendario(true)}>
-              Ver Calendário
-            </Button>
-          ) : undefined
+          ) : (
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => setImportOpen(true)}>
+                <Upload className="h-3.5 w-3.5 mr-1" />Importar
+              </Button>
+              {programaAtivo && (
+                <Button size="sm" variant="outline" onClick={() => setShowCalendario(true)}>
+                  Ver Calendário
+                </Button>
+              )}
+            </div>
+          )
         }
       />
 
@@ -971,6 +1012,49 @@ export default function ManutencaoPage() {
           </div>
         </>
       )}
+
+      {/* Modal Importar Programa */}
+      <Dialog open={importOpen} onOpenChange={setImportOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Importar Programa Completo</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Cole o JSON do programa abaixo ou carregue um arquivo. O programa ativo será arquivado automaticamente.
+            </p>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
+                <Upload className="h-3 w-3 mr-1" />Abrir arquivo
+              </Button>
+              <a
+                href="/template-vtaper-16w.json"
+                download
+                className="text-xs text-primary underline underline-offset-2 flex items-center gap-1"
+              >
+                <Download className="h-3 w-3" />baixar template V-Taper
+              </a>
+              <input ref={fileRef} type="file" accept=".json" className="hidden" onChange={handleFileChange} />
+            </div>
+            <Textarea
+              placeholder='{ "nome": "...", "blocos": [...], "splits": [...] }'
+              rows={10}
+              className="font-mono text-xs resize-none"
+              value={importJson}
+              onChange={e => setImportJson(e.target.value)}
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setImportOpen(false); setImportJson('') }}>Cancelar</Button>
+            <Button
+              onClick={() => importarMutation.mutate()}
+              disabled={importarMutation.isPending || !importJson.trim()}
+            >
+              {importarMutation.isPending ? 'Importando...' : 'Importar Programa'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
