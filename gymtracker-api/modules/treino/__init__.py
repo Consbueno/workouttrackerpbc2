@@ -135,47 +135,73 @@ def get_program(program_id):
 
 
 def _get_program_detail(program_id, user_id):
-    program = db.query_one(
-        "SELECT * FROM training_programs WHERE id = %s AND user_id = %s",
-        (program_id, user_id),
-    )
-    if not program:
-        return jsonify({"error": "Programa não encontrado."}), 404
+    # Usa uma única conexão e 5 queries com ANY() em vez de N+1 (antes: ~43 queries)
+    with db.db() as conn:
+        cur = conn.cursor()
 
-    blocks = db.query(
-        "SELECT * FROM training_blocks WHERE program_id = %s ORDER BY block_order",
-        (program_id,),
-    )
-    splits = db.query(
-        "SELECT * FROM training_splits WHERE program_id = %s ORDER BY split_order",
-        (program_id,),
-    )
-
-    splits_with_exercises = []
-    for split in splits:
-        split_id = split["id"]
-        exercises = db.query(
-            """SELECT se.*, e.name as exercise_name, e.primary_muscle_group, e.equipment
-               FROM split_exercises se
-               JOIN exercises e ON e.id = se.exercise_id
-               WHERE se.split_id = %s ORDER BY se.exercise_order""",
-            (split_id,),
+        cur.execute(
+            "SELECT * FROM training_programs WHERE id = %s AND user_id = %s",
+            (program_id, user_id),
         )
-        exercises_with_configs = []
-        for ex in exercises:
-            configs = db.query(
+        program = cur.fetchone()
+        if not program:
+            return jsonify({"error": "Programa não encontrado."}), 404
+
+        cur.execute(
+            "SELECT * FROM training_blocks WHERE program_id = %s ORDER BY block_order",
+            (program_id,),
+        )
+        blocks = cur.fetchall()
+
+        cur.execute(
+            "SELECT * FROM training_splits WHERE program_id = %s ORDER BY split_order",
+            (program_id,),
+        )
+        splits_raw = cur.fetchall()
+        split_ids = [s["id"] for s in splits_raw]
+
+        if split_ids:
+            cur.execute(
+                """SELECT se.*, e.name as exercise_name, e.primary_muscle_group, e.equipment
+                   FROM split_exercises se
+                   JOIN exercises e ON e.id = se.exercise_id
+                   WHERE se.split_id = ANY(%s)
+                   ORDER BY se.split_id, se.exercise_order""",
+                (split_ids,),
+            )
+            all_se = cur.fetchall()
+        else:
+            all_se = []
+
+        se_ids = [se["id"] for se in all_se]
+
+        if se_ids:
+            cur.execute(
                 """SELECT sebc.*, tb.name as block_name, tb.block_order
                    FROM split_exercise_block_config sebc
                    JOIN training_blocks tb ON tb.id = sebc.block_id
-                   WHERE sebc.split_exercise_id = %s ORDER BY tb.block_order""",
-                (ex["id"],),
+                   WHERE sebc.split_exercise_id = ANY(%s)
+                   ORDER BY sebc.split_exercise_id, tb.block_order""",
+                (se_ids,),
             )
-            ex_dict = _row_to_dict(ex)
-            ex_dict["block_configs"] = _rows_to_list(configs)
-            exercises_with_configs.append(ex_dict)
+            all_configs = cur.fetchall()
+        else:
+            all_configs = []
 
+    configs_map: dict = {}
+    for cfg in all_configs:
+        configs_map.setdefault(cfg["split_exercise_id"], []).append(_row_to_dict(cfg))
+
+    exercises_map: dict = {}
+    for se in all_se:
+        se_dict = _row_to_dict(se)
+        se_dict["block_configs"] = configs_map.get(se["id"], [])
+        exercises_map.setdefault(se["split_id"], []).append(se_dict)
+
+    splits_with_exercises = []
+    for split in splits_raw:
         split_dict = _row_to_dict(split)
-        split_dict["exercises"] = exercises_with_configs
+        split_dict["exercises"] = exercises_map.get(split["id"], [])
         splits_with_exercises.append(split_dict)
 
     result = _row_to_dict(program)

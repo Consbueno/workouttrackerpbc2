@@ -373,20 +373,26 @@ export default function ManutencaoPage() {
   const { data: exercises = [] } = useQuery({
     queryKey: ['exercicios'],
     queryFn: () => exerciciosApi.list().then(r => r.data.data as { id: number; name: string; primary_muscle_group: string; is_active: boolean }[]),
+    staleTime: 120_000,
   })
   const { data: athlete } = useQuery({
     queryKey: ['atleta'],
     queryFn: () => atletaApi.get().then(r => r.data.data),
+    staleTime: 300_000,
   })
   const { data: gyms = [] } = useQuery({
     queryKey: ['academias'],
     queryFn: () => academiaApi.list().then(r => r.data.data as { id: number; name: string; is_active: boolean }[]),
+    staleTime: 300_000,
   })
-  const { data: programaAtivo, isLoading: loadingPrograma } = useQuery({
-    queryKey: ['programa-ativo'],
-    queryFn: () => programasApi.getAtivo().then(r => r.data.data),
+  // Usa list em vez de getAtivo() para evitar o endpoint pesado (full detail)
+  // ManutencaoPage só precisa saber se há programa ativo e seu ID
+  const { data: programasAtivos = [], isLoading: loadingPrograma } = useQuery({
+    queryKey: ['programas-lista-ativa'],
+    queryFn: () => programasApi.list({ status: 'active' }).then(r => r.data.data as { id: number; name: string; status: string }[]),
     staleTime: 30_000,
   })
+  const programaAtivo = programasAtivos[0] ?? null
 
   useEffect(() => {
     if (athlete?.id) setAthleteId(athlete.id)
