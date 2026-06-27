@@ -1,11 +1,11 @@
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Dumbbell, ClipboardList, Settings } from 'lucide-react'
+import { LayoutDashboard, Dumbbell, BrainCircuit, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/cadastros/exercicios', icon: ClipboardList, label: 'Cadastros' },
   { to: '/treino/execucao', icon: Dumbbell, label: 'Treino' },
+  { to: '/treinador', icon: BrainCircuit, label: 'Treinador' },
   { to: '/configuracoes', icon: Settings, label: 'Config' },
 ]
 

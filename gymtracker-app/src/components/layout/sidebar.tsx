@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Dumbbell, ClipboardList, Settings,
   Users, Building2, ChevronDown, ChevronRight,
   Activity, BarChart3, Cpu, Wrench, PanelLeftClose, PanelLeftOpen,
-  LogOut,
+  LogOut, BrainCircuit,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
@@ -38,6 +38,7 @@ const navItems: NavItem[] = [
       { to: '/treino/analise', label: 'Análise IA', icon: Cpu },
     ],
   },
+  { to: '/treinador', icon: BrainCircuit, label: 'Treinador' },
   { to: '/configuracoes', icon: Settings, label: 'Configurações' },
 ]
 

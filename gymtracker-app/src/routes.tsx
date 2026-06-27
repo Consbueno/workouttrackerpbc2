@@ -15,6 +15,7 @@ import FimCicloPage from '@/pages/treino/fim-ciclo'
 import ResultadosPage from '@/pages/treino/resultados'
 import NovaMedicaoPage from '@/pages/treino/nova-medicao'
 import AnalisePage from '@/pages/treino/analise'
+import TreinadorPage from '@/pages/treinador'
 import ConfiguracoesPage from '@/pages/configuracoes'
 
 function PrivateLayout({ children }: { children: React.ReactNode }) {
@@ -58,6 +59,7 @@ export function AppRoutes() {
                 <Route path="/treino/resultados" element={<ResultadosPage />} />
                 <Route path="/treino/resultados/nova" element={<NovaMedicaoPage />} />
                 <Route path="/treino/analise" element={<AnalisePage />} />
+                <Route path="/treinador" element={<TreinadorPage />} />
                 <Route path="/configuracoes" element={<ConfiguracoesPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

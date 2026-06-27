@@ -75,12 +75,14 @@ def create_app():
     from modules.treino import bp as treino_bp
     from modules.resultados import bp as resultados_bp
     from modules.analise import bp as analise_bp
+    from modules.treinador import bp as treinador_bp
 
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(cadastros_bp, url_prefix="/cadastros")
     app.register_blueprint(treino_bp, url_prefix="/treino")
     app.register_blueprint(resultados_bp, url_prefix="/resultados")
     app.register_blueprint(analise_bp, url_prefix="/analise")
+    app.register_blueprint(treinador_bp, url_prefix="/treinador")
 
     @app.after_request
     def _add_cors_headers(resp):
