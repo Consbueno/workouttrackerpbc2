@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, ChangeEvent } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Search, Pencil, Power, Upload, Download, ListChecks } from 'lucide-react'
+import { Plus, Search, Pencil, Power, Upload, Download, ListChecks, Lock } from 'lucide-react'
 import { PageHeader } from '@/components/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,7 +21,7 @@ import { toast } from '@/hooks/use-toast'
 
 interface Exercise {
   id: number; name: string; primary_muscle_group: string; secondary_muscle_group?: string
-  equipment: string; exercise_type: string; notes?: string; is_active: boolean
+  equipment: string; exercise_type: string; notes?: string; is_active: boolean; is_global?: boolean
 }
 
 const emptyForm = {
@@ -191,17 +191,24 @@ export default function ExerciciosPage() {
                     <Badge variant="outline" className="text-xs">{ex.primary_muscle_group}</Badge>
                     <Badge variant="secondary" className="text-xs">{ex.equipment}</Badge>
                     <Badge variant="secondary" className="text-xs">{typeLabel(ex.exercise_type)}</Badge>
+                    {ex.is_global && (
+                      <Badge variant="outline" className="text-xs text-muted-foreground border-muted-foreground/40 gap-1">
+                        <Lock className="h-2.5 w-2.5" />Padrão
+                      </Badge>
+                    )}
                     {!ex.is_active && <Badge variant="destructive" className="text-xs">Inativo</Badge>}
                   </div>
                 </div>
-                <div className="flex gap-1 flex-shrink-0">
-                  <Button size="icon" variant="ghost" onClick={() => openEdit(ex)}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button size="icon" variant="ghost" onClick={() => toggleMutation.mutate(ex.id)}>
-                    <Power className="h-4 w-4" />
-                  </Button>
-                </div>
+                {!ex.is_global && (
+                  <div className="flex gap-1 flex-shrink-0">
+                    <Button size="icon" variant="ghost" onClick={() => openEdit(ex)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => toggleMutation.mutate(ex.id)}>
+                      <Power className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

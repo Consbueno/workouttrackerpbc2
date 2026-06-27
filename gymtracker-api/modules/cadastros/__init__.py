@@ -21,7 +21,7 @@ def list_exercises():
     muscle = request.args.get("muscle_group")
     search = request.args.get("search", "").strip()
 
-    sql = "SELECT * FROM exercises WHERE user_id = %s"
+    sql = "SELECT *, (user_id IS NULL) AS is_global FROM exercises WHERE (user_id = %s OR user_id IS NULL)"
     params = [user_id]
     if muscle:
         sql += " AND primary_muscle_group = %s"
@@ -66,6 +66,13 @@ def create_exercise():
 @jwt_required()
 def update_exercise(exercise_id):
     user_id = int(get_jwt_identity())
+
+    existing = db.query_one("SELECT user_id FROM exercises WHERE id = %s", (exercise_id,))
+    if not existing:
+        return jsonify({"error": "Exercício não encontrado."}), 404
+    if existing["user_id"] is None:
+        return jsonify({"error": "Exercícios padrão não podem ser editados. Crie um novo exercício personalizado."}), 403
+
     try:
         data = exercise_schema.load(request.get_json() or {})
     except ValidationError as e:
@@ -97,6 +104,13 @@ def update_exercise(exercise_id):
 @jwt_required()
 def toggle_exercise(exercise_id):
     user_id = int(get_jwt_identity())
+
+    existing = db.query_one("SELECT user_id FROM exercises WHERE id = %s", (exercise_id,))
+    if not existing:
+        return jsonify({"error": "Exercício não encontrado."}), 404
+    if existing["user_id"] is None:
+        return jsonify({"error": "Exercícios padrão não podem ser desativados."}), 403
+
     row = db.execute(
         """UPDATE exercises SET is_active = NOT is_active, updated_at=NOW()
            WHERE id=%s AND user_id=%s RETURNING *""",
@@ -328,7 +342,7 @@ def _upsert_exercises(user_id, exercicios_list):
         cur = conn.cursor()
         for ex in exercicios_list:
             cur.execute(
-                "SELECT id FROM exercises WHERE user_id = %s AND name = %s LIMIT 1",
+                "SELECT id FROM exercises WHERE (user_id = %s OR user_id IS NULL) AND LOWER(name) = LOWER(%s) LIMIT 1",
                 (user_id, ex["name"]),
             )
             if cur.fetchone():

@@ -253,7 +253,7 @@ def _build_context(user_id: int) -> dict:
         }
 
     exercises = db.query(
-        "SELECT id, name, primary_muscle_group, equipment, exercise_type FROM exercises WHERE user_id = %s AND is_active = TRUE ORDER BY name",
+        "SELECT id, name, primary_muscle_group, equipment, exercise_type FROM exercises WHERE (user_id = %s OR user_id IS NULL) AND is_active = TRUE ORDER BY name",
         (user_id,),
     )
     context["exercicios"] = _rows_to_list(exercises)

@@ -1169,7 +1169,7 @@ def importar_programa():
             for ex_data in split.get("exercicios", []):
                 ex_name = ex_data["nome"]
                 cur.execute(
-                    "SELECT id FROM exercises WHERE user_id = %s AND name = %s LIMIT 1",
+                    "SELECT id FROM exercises WHERE (user_id = %s OR user_id IS NULL) AND LOWER(name) = LOWER(%s) LIMIT 1",
                     (user_id, ex_name),
                 )
                 ex_row = cur.fetchone()
